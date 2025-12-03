@@ -23,6 +23,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Pulse',
       debugShowCheckedModeBanner: false,
+      title: 'Pulse',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: kPrimaryColor,
