@@ -180,25 +180,27 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
+      appBar: AppBar(
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: textColor),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'Создание команды',
+          style: TextStyle(
+            color: textColor,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Form(
           key: _formKey,
           child: CustomScrollView(
             slivers: [
-              // Заголовок
-              SliverToBoxAdapter(
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    'Создание команды',
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
               // Форма
               SliverToBoxAdapter(
                 child: Padding(

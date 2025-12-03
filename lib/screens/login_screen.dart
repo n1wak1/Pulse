@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'home_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -74,21 +76,26 @@ class _LoginScreenState extends State<LoginScreen> {
       //      MaterialPageRoute(builder: (_) => const TaskScreen()),
       //    );
 
-      // Временная заглушка - имитация задержки
+      // Моковая авторизация - всегда успешный вход
+      // TODO: Заменить на реальную авторизацию через AuthService
+      // final authService = AuthService();
+      // final email = _emailController.text.trim();
+      // final password = _passwordController.text;
+      // 
+      // if (_isLoginMode) {
+      //   final authResponse = await authService.login(email, password);
+      // } else {
+      //   final authResponse = await authService.register(email, password);
+      // }
+
       await Future.delayed(const Duration(seconds: 1));
 
       if (!mounted) return;
 
-      // Временное сообщение (замените на реальную логику)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _isLoginMode
-                ? 'Успешный вход (подключите API)'
-                : 'Успешная регистрация (подключите API)',
-          ),
-          backgroundColor: Colors.green,
-        ),
+      // Переход на главный экран
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     } catch (e) {
       // Обработка ошибок
@@ -248,9 +255,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
                                   onPressed: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Восстановление пароля реализует бекенд'),
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const ForgotPasswordScreen(),
                                       ),
                                     );
                                   },

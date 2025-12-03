@@ -1,15 +1,19 @@
+import 'team_member_api.dart';
+
 /// Модель ответа API для команды (TeamResponse из swagger)
 class TeamResponse {
   final int id;
   final String name;
   final String? description;
   final DateTime createdAt;
+  final List<TeamMemberApi> members;
 
   TeamResponse({
     required this.id,
     required this.name,
     this.description,
     required this.createdAt,
+    this.members = const [],
   });
 
   /// Конструктор из JSON
@@ -19,6 +23,11 @@ class TeamResponse {
       name: json['name'] as String,
       description: json['description'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      members: json['members'] != null
+          ? (json['members'] as List)
+              .map((m) => TeamMemberApi.fromJson(m as Map<String, dynamic>))
+              .toList()
+          : [],
     );
   }
 
@@ -29,6 +38,7 @@ class TeamResponse {
       'name': name,
       'description': description,
       'createdAt': createdAt.toIso8601String(),
+      'members': members.map((m) => m.toJson()).toList(),
     };
   }
 }

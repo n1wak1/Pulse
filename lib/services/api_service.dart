@@ -1,14 +1,15 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../models/task.dart';
+import '../config/api_config.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:8080';
   late Dio _dio;
   String? _authToken;
 
   ApiService() {
     _dio = Dio(BaseOptions(
-      baseUrl: baseUrl,
+      baseUrl: ApiConfig.baseUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       headers: {
@@ -18,13 +19,16 @@ class ApiService {
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
-        if (_authToken != null) {
-          options.headers['Authorization'] = 'Bearer $_authToken';
+        final token = _authToken ?? ApiConfig.getAuthToken();
+        if (token != null) {
+          options.headers['Authorization'] = 'Bearer $token';
         }
         return handler.next(options);
       },
       onError: (error, handler) {
-        print('API Error: ${error.message}');
+        debugPrint('API Error: ${error.message}');
+        // Не пробрасываем ошибку дальше, чтобы приложение не крашилось
+        // если сервер недоступен
         return handler.next(error);
       },
     ));
@@ -49,8 +53,9 @@ class ApiService {
       }
       return [];
     } catch (e) {
-      print('Error fetching tasks: $e');
-      rethrow;
+      debugPrint('Error fetching tasks: $e');
+      // Возвращаем пустой список вместо rethrow, чтобы приложение не крашилось
+      return [];
     }
   }
 
@@ -59,7 +64,7 @@ class ApiService {
       final response = await _dio.get('/api/tasks/$id');
       return Task.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      print('Error fetching task: $e');
+      debugPrint('Error fetching task: $e');
       rethrow;
     }
   }
@@ -72,7 +77,7 @@ class ApiService {
       );
       return Task.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      print('Error creating task: $e');
+      debugPrint('Error creating task: $e');
       rethrow;
     }
   }
@@ -85,7 +90,7 @@ class ApiService {
       );
       return Task.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      print('Error updating task: $e');
+      debugPrint('Error updating task: $e');
       rethrow;
     }
   }
@@ -94,7 +99,7 @@ class ApiService {
     try {
       await _dio.delete('/api/tasks/$id');
     } catch (e) {
-      print('Error deleting task: $e');
+      debugPrint('Error deleting task: $e');
       rethrow;
     }
   }
@@ -109,8 +114,23 @@ class ApiService {
       }
       return [];
     } catch (e) {
-      print('Error fetching tasks by status: $e');
+      debugPrint('Error fetching tasks by status: $e');
       rethrow;
+    }
+  }
+
+  Future<List<Task>> getTasksAssignedToMe() async {
+    try {
+      final response = await _dio.get('/api/tasks/assigned-to-me');
+      if (response.data is List) {
+        return (response.data as List)
+            .map((json) => Task.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching assigned tasks: $e');
+      return [];
     }
   }
 }

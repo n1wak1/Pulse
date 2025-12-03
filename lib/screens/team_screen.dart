@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 import '../models/team_member.dart';
 import '../models/task.dart';
 import '../models/team_data.dart';
+import '../services/api_service.dart';
+import '../services/team_service.dart';
+import '../core/api_client.dart';
+import 'create_team_screen.dart';
+import 'task_detail_screen.dart';
+import '../widgets/task_card.dart';
 
 class TeamScreen extends StatefulWidget {
   final TeamData? teamData;
+  final Function(TeamData)? onTeamCreated;
 
-  const TeamScreen({super.key, this.teamData});
+  const TeamScreen({super.key, this.teamData, this.onTeamCreated});
 
   @override
   State<TeamScreen> createState() => _TeamScreenState();
@@ -24,6 +31,8 @@ class _TeamScreenState extends State<TeamScreen> {
   List<TeamMember> _teamMembers = [];
   List<Task> _tasks = [];
   String _teamName = 'Название команды';
+  final ApiService _apiService = ApiService();
+  final TeamService _teamService = TeamService(ApiClient());
 
   @override
   void initState() {
@@ -44,47 +53,47 @@ class _TeamScreenState extends State<TeamScreen> {
       _isLoading = true;
     });
 
-    // Имитация загрузки данных
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      // Загружаем задачи, назначенные на текущего пользователя
+      final assignedTasks = await _apiService.getTasksAssignedToMe();
 
-    setState(() {
+      // Загружаем данные команды
       if (widget.teamData != null) {
-        // Используем данные из экрана создания команды
         _teamName = widget.teamData!.name;
         _teamMembers = widget.teamData!.members;
       } else {
-        // ФЕЙКОВЫЕ ДАННЫЕ - редактируйте здесь
-        _teamName = 'Название команды';
-        
-        _teamMembers = [
-          TeamMember(role: 'Руководитель', nickname: '@alex_dev'),
-          TeamMember(role: 'Разработчик', nickname: '@maria_code'),
-          TeamMember(role: 'Дизайнер', nickname: '@ivan_design'),
-          TeamMember(role: 'Тестировщик', nickname: '@anna_test'),
-        ];
+        // TODO: Загрузить команду пользователя через API
+        // final teams = await _teamService.getAllTeams();
+        // if (teams.isNotEmpty) {
+        //   final team = teams.first;
+        //   _teamName = team.name;
+        //   _teamMembers = team.members.map((m) => 
+        //     TeamMember(role: m.role, nickname: m.userName)
+        //   ).toList();
+        // }
+        _teamName = 'Моя команда';
+        _teamMembers = [];
       }
 
-      // Задачи всегда фейковые (можно будет добавить позже)
-      _tasks = [
-        Task(
-          id: '1',
-          title: 'Реализовать авторизацию',
-          deadline: DateTime.now().add(const Duration(days: 3)),
-        ),
-        Task(
-          id: '2',
-          title: 'Создать главный экран',
-          deadline: DateTime.now().add(const Duration(days: 5)),
-        ),
-        Task(
-          id: '3',
-          title: 'Написать тесты',
-          deadline: DateTime.now().add(const Duration(days: 7)),
-        ),
-      ];
-
-      _isLoading = false;
-    });
+      if (mounted) {
+        setState(() {
+          _tasks = assignedTasks;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        // Используем моковые данные при ошибке
+        if (widget.teamData != null) {
+          _teamName = widget.teamData!.name;
+          _teamMembers = widget.teamData!.members;
+        }
+        _tasks = [];
+      }
+    }
   }
 
   void _updateDataFromTeamData() {
@@ -96,32 +105,6 @@ class _TeamScreenState extends State<TeamScreen> {
     }
   }
 
-  void _toggleTaskCompletion(int index) {
-    setState(() {
-      _tasks[index].isCompleted = !_tasks[index].isCompleted;
-    });
-  }
-
-  void _deleteTask(int index) {
-    setState(() {
-      _tasks.removeAt(index);
-    });
-  }
-
-  String _formatDeadline(DateTime deadline) {
-    final now = DateTime.now();
-    final difference = deadline.difference(now);
-
-    if (difference.inDays < 0) {
-      return 'Просрочено';
-    } else if (difference.inDays == 0) {
-      return 'Сегодня';
-    } else if (difference.inDays == 1) {
-      return 'Завтра';
-    } else {
-      return 'Через ${difference.inDays} дн.';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -180,13 +163,43 @@ class _TeamScreenState extends State<TeamScreen> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(24),
-      child: Text(
-        _teamName,
-        style: TextStyle(
-          color: textColor,
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              _teamName,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline),
+            onPressed: () async {
+              final result = await Navigator.push<TeamData>(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CreateTeamScreen(
+                    onTeamCreated: (teamData) {
+                      Navigator.of(context).pop(teamData);
+                    },
+                  ),
+                ),
+              );
+              if (result != null && mounted) {
+                widget.onTeamCreated?.call(result);
+                setState(() {
+                  _teamName = result.name;
+                  _teamMembers = result.members;
+                });
+              }
+            },
+            tooltip: 'Создать команду',
+          ),
+        ],
       ),
     );
   }
@@ -316,37 +329,19 @@ class _TeamScreenState extends State<TeamScreen> {
                 ),
               );
             },
-            child: Dismissible(
-              key: Key(_tasks[index].id),
-              direction: DismissDirection.endToStart,
-              background: Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.only(right: 24),
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                alignment: Alignment.centerRight,
-                child: Icon(
-                  Icons.delete_outline,
-                  color: Colors.red,
-                  size: 32,
-                ),
-              ),
-              onDismissed: (direction) {
-                _deleteTask(index);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Задача "${_tasks[index].title}" удалена'),
-                    backgroundColor: accentColor,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+            child: TaskCard(
+              task: _tasks[index],
+              onTap: () async {
+                final result = await Navigator.push<Task>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TaskDetailScreen(task: _tasks[index]),
                   ),
                 );
+                if (result != null && mounted) {
+                  _loadData(); // Обновляем список после редактирования
+                }
               },
-              child: _buildTaskCard(_tasks[index], index),
             ),
           );
         },
@@ -355,96 +350,6 @@ class _TeamScreenState extends State<TeamScreen> {
     );
   }
 
-  Widget _buildTaskCard(Task task, int index) {
-    final isOverdue = task.deadline.isBefore(DateTime.now()) && !task.isCompleted;
-    final deadlineText = _formatDeadline(task.deadline);
-
-    return Container(
-      margin: const EdgeInsets.only(left: 24, right: 24, bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => _toggleTaskCompletion(index),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: task.isCompleted ? accentColor : Colors.transparent,
-                border: Border.all(
-                  color: task.isCompleted ? accentColor : dividerColor,
-                  width: 2,
-                ),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: task.isCompleted
-                  ? const Icon(
-                      Icons.check,
-                      color: Colors.white,
-                      size: 16,
-                    )
-                  : null,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  task.title,
-                  style: TextStyle(
-                    color: task.isCompleted
-                        ? textColor.withOpacity(0.5)
-                        : textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    decoration: task.isCompleted
-                        ? TextDecoration.lineThrough
-                        : TextDecoration.none,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: 14,
-                      color: isOverdue
-                          ? Colors.red
-                          : textColor.withOpacity(0.6),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      deadlineText,
-                      style: TextStyle(
-                        color: isOverdue
-                            ? Colors.red
-                            : textColor.withOpacity(0.6),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildEmptyState() {
     return Center(

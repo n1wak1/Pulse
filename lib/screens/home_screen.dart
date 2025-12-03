@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'tasks_screen.dart';
-import 'kanban_board_screen.dart';
+import 'backlog_screen.dart';
+import 'team_screen.dart';
+import '../models/team_data.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -9,89 +10,52 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  VoidCallback? _addTaskCallback;
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+  TeamData? _teamData;
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  void _onTeamCreated(TeamData teamData) {
+    setState(() {
+      _teamData = teamData;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFfafafa),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFfafafa),
-        elevation: 0,
-        title: const Text(
-          'Pulse',
-          style: TextStyle(
-            color: Color(0xFF000000),
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: const Color(0xFF73a168),
-          labelColor: const Color(0xFF000000),
-          unselectedLabelColor: const Color(0xFF636363),
-          labelStyle: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.normal,
-            fontSize: 16,
-          ),
-          tabs: const [
-            Tab(
-              icon: Icon(Icons.list),
-              text: 'Задачи',
-            ),
-            Tab(
-              icon: Icon(Icons.view_kanban),
-              text: 'Канбан',
-            ),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
+      body: IndexedStack(
+        index: _currentIndex,
         children: [
-          TasksScreen(
-            onAddTaskCallback: (callback) {
-              setState(() {
-                _addTaskCallback = callback;
-              });
-            },
-          ),
-          KanbanBoardScreen(
-            onAddTaskCallback: (callback) {
-              setState(() {
-                _addTaskCallback = callback;
-              });
-            },
+          const BacklogScreen(),
+          TeamScreen(
+            key: ValueKey(_teamData?.name),
+            teamData: _teamData,
+            onTeamCreated: _onTeamCreated,
           ),
         ],
       ),
-      floatingActionButton: _addTaskCallback != null
-          ? FloatingActionButton(
-              onPressed: _addTaskCallback,
-              backgroundColor: const Color(0xFF636363),
-              tooltip: 'Добавить задачу',
-              child: const Icon(Icons.add, color: Colors.white),
-            )
-          : null,
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        selectedItemColor: const Color(0xFF73A168),
+        unselectedItemColor: const Color(0xFF636363),
+        backgroundColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list),
+            label: 'Backlog',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.group),
+            label: 'Команда',
+          ),
+        ],
+      ),
     );
   }
 }
