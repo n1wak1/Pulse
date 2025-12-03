@@ -55,9 +55,9 @@ class _BacklogScreenState extends State<BacklogScreen> {
         });
         // Не показываем ошибку при первой загрузке, если это просто отсутствие подключения
         if (_tasks.isNotEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка загрузки задач: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Ошибка загрузки задач: $e')));
         }
       }
     }
@@ -66,9 +66,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
   Future<void> _openTaskDetail(Task task) async {
     final result = await Navigator.push<Task>(
       context,
-      MaterialPageRoute(
-        builder: (context) => TaskDetailScreen(task: task),
-      ),
+      MaterialPageRoute(builder: (context) => TaskDetailScreen(task: task)),
     );
 
     if (result != null && mounted) {
@@ -80,9 +78,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
   Future<void> _openCreateTask() async {
     final result = await Navigator.push<Task>(
       context,
-      MaterialPageRoute(
-        builder: (context) => const TaskDetailScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const TaskDetailScreen()),
     );
 
     if (result != null && mounted) {
@@ -145,40 +141,40 @@ class _BacklogScreenState extends State<BacklogScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : filteredTasks.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.task_alt,
-                              size: 64,
-                              color: Colors.black.withValues(alpha: 0.3),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Задач не найдено',
-                              style: TextStyle(
-                                color: Colors.black.withValues(alpha: 0.5),
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.task_alt,
+                          size: 64,
+                          color: Colors.black.withValues(alpha: 0.3),
                         ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _loadTasks,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: filteredTasks.length,
-                          itemBuilder: (context, index) {
-                            final task = filteredTasks[index];
-                            return TaskCard(
-                              task: task,
-                              onTap: () => _openTaskDetail(task),
-                            );
-                          },
+                        const SizedBox(height: 16),
+                        Text(
+                          'Задач не найдено',
+                          style: TextStyle(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadTasks,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: filteredTasks.length,
+                      itemBuilder: (context, index) {
+                        final task = filteredTasks[index];
+                        return TaskCard(
+                          task: task,
+                          onTap: () => _openTaskDetail(task),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
@@ -191,4 +187,3 @@ class _BacklogScreenState extends State<BacklogScreen> {
     );
   }
 }
-

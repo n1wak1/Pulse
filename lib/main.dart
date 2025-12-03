@@ -16,9 +16,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final baseTextTheme = ThemeData.light().textTheme.apply(
-          bodyColor: kTextColor,
-          displayColor: kTextColor,
-        );
+      bodyColor: kTextColor,
+      displayColor: kTextColor,
+    );
 
     return MaterialApp(
       title: 'Pulse',
@@ -66,9 +66,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
         textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(
-            foregroundColor: kActionButtonColor,
-          ),
+          style: TextButton.styleFrom(foregroundColor: kActionButtonColor),
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: kPrimaryColor,

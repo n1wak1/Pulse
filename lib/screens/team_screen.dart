@@ -67,7 +67,7 @@ class _TeamScreenState extends State<TeamScreen> {
         // if (teams.isNotEmpty) {
         //   final team = teams.first;
         //   _teamName = team.name;
-        //   _teamMembers = team.members.map((m) => 
+        //   _teamMembers = team.members.map((m) =>
         //     TeamMember(role: m.role, nickname: m.userName)
         //   ).toList();
         // }
@@ -105,15 +105,12 @@ class _TeamScreenState extends State<TeamScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
-        child: _isLoading
-            ? _buildLoadingState()
-            : _buildContent(),
+        child: _isLoading ? _buildLoadingState() : _buildContent(),
       ),
     );
   }
@@ -127,13 +124,7 @@ class _TeamScreenState extends State<TeamScreen> {
             valueColor: AlwaysStoppedAnimation<Color>(accentColor),
           ),
           const SizedBox(height: 24),
-          Text(
-            'Загрузка...',
-            style: TextStyle(
-              color: textColor,
-              fontSize: 16,
-            ),
-          ),
+          Text('Загрузка...', style: TextStyle(color: textColor, fontSize: 16)),
         ],
       ),
     );
@@ -143,17 +134,11 @@ class _TeamScreenState extends State<TeamScreen> {
     return CustomScrollView(
       slivers: [
         // Верхняя панель с заголовком
-        SliverToBoxAdapter(
-          child: _buildHeader(),
-        ),
+        SliverToBoxAdapter(child: _buildHeader()),
         // Список участников команды
-        SliverToBoxAdapter(
-          child: _buildTeamMembersSection(),
-        ),
+        SliverToBoxAdapter(child: _buildTeamMembersSection()),
         // Разделительная линия
-        SliverToBoxAdapter(
-          child: _buildDivider(),
-        ),
+        SliverToBoxAdapter(child: _buildDivider()),
         // Список задач
         _buildTasksSection(),
       ],
@@ -247,7 +232,7 @@ class _TeamScreenState extends State<TeamScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -259,14 +244,10 @@ class _TeamScreenState extends State<TeamScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.1),
+              color: accentColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              Icons.person,
-              color: accentColor,
-              size: 24,
-            ),
+            child: Icon(Icons.person, color: accentColor, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -285,7 +266,7 @@ class _TeamScreenState extends State<TeamScreen> {
                 Text(
                   member.nickname,
                   style: TextStyle(
-                    color: textColor.withOpacity(0.6),
+                    color: textColor.withValues(alpha: 0.6),
                     fontSize: 14,
                   ),
                 ),
@@ -314,42 +295,38 @@ class _TeamScreenState extends State<TeamScreen> {
     }
 
     return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          return TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0.0, end: 1.0),
-            duration: Duration(milliseconds: 300 + (index * 100)),
-            curve: Curves.easeOut,
-            builder: (context, value, child) {
-              return Opacity(
-                opacity: value,
-                child: Transform.translate(
-                  offset: Offset(0, 20 * (1 - value)),
-                  child: child,
+      delegate: SliverChildBuilderDelegate((context, index) {
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: Duration(milliseconds: 300 + (index * 100)),
+          curve: Curves.easeOut,
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 20 * (1 - value)),
+                child: child,
+              ),
+            );
+          },
+          child: TaskCard(
+            task: _tasks[index],
+            onTap: () async {
+              final result = await Navigator.push<Task>(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TaskDetailScreen(task: _tasks[index]),
                 ),
               );
+              if (result != null && mounted) {
+                _loadData(); // Обновляем список после редактирования
+              }
             },
-            child: TaskCard(
-              task: _tasks[index],
-              onTap: () async {
-                final result = await Navigator.push<Task>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TaskDetailScreen(task: _tasks[index]),
-                  ),
-                );
-                if (result != null && mounted) {
-                  _loadData(); // Обновляем список после редактирования
-                }
-              },
-            ),
-          );
-        },
-        childCount: _tasks.length,
-      ),
+          ),
+        );
+      }, childCount: _tasks.length),
     );
   }
-
 
   Widget _buildEmptyState() {
     return Center(
@@ -359,13 +336,13 @@ class _TeamScreenState extends State<TeamScreen> {
           Icon(
             Icons.task_alt,
             size: 80,
-            color: textColor.withOpacity(0.3),
+            color: textColor.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 24),
           Text(
             'Нет задач',
             style: TextStyle(
-              color: textColor.withOpacity(0.6),
+              color: textColor.withValues(alpha: 0.6),
               fontSize: 20,
               fontWeight: FontWeight.w600,
             ),
@@ -374,7 +351,7 @@ class _TeamScreenState extends State<TeamScreen> {
           Text(
             'Добавьте первую задачу',
             style: TextStyle(
-              color: textColor.withOpacity(0.4),
+              color: textColor.withValues(alpha: 0.4),
               fontSize: 14,
             ),
           ),

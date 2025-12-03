@@ -26,7 +26,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
   final _teamNameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _goalController = TextEditingController();
-  
+
   // Контроллеры для участников
   final List<TextEditingController> _roleControllers = [];
   final List<TextEditingController> _nicknameControllers = [];
@@ -76,9 +76,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
       try {
@@ -97,13 +95,13 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
 
         // Создаем TeamData из ответа (для совместимости с UI)
         final teamData = TeamData.fromTeamResponse(teamResponse);
-        
+
         // Добавляем локальные данные (goal и members), которые не поддерживаются API
         final members = <TeamMember>[];
         for (int i = 0; i < _roleControllers.length; i++) {
           final role = _roleControllers[i].text.trim();
           final nickname = _nicknameControllers[i].text.trim();
-          
+
           if (role.isNotEmpty && nickname.isNotEmpty) {
             members.add(TeamMember(role: role, nickname: nickname));
           }
@@ -146,7 +144,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
         _teamNameController.clear();
         _descriptionController.clear();
         _goalController.clear();
-        
+
         // Оставляем одно поле для участника
         while (_roleControllers.length > 1) {
           _removeMemberField(_roleControllers.length - 1);
@@ -221,7 +219,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                         },
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Описание команды
                       _buildTextField(
                         controller: _descriptionController,
@@ -236,7 +234,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                         },
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Цель проекта
                       _buildTextField(
                         controller: _goalController,
@@ -251,7 +249,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                         },
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Участники команды
                       Text(
                         'Участники команды',
@@ -262,13 +260,13 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Список участников
                       ...List.generate(
                         _roleControllers.length,
                         (index) => _buildMemberField(index),
                       ),
-                      
+
                       // Кнопка добавления участника
                       const SizedBox(height: 16),
                       OutlinedButton.icon(
@@ -288,7 +286,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Кнопка создания команды
                       SizedBox(
                         width: double.infinity,
@@ -353,52 +351,35 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
           ],
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(
-              color: textColor.withOpacity(0.4),
-            ),
+            hintStyle: TextStyle(color: textColor.withValues(alpha: 0.4)),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: textColor.withOpacity(0.2),
-              ),
+              borderSide: BorderSide(color: textColor.withValues(alpha: 0.2)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: textColor.withOpacity(0.2),
-              ),
+              borderSide: BorderSide(color: textColor.withValues(alpha: 0.2)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: accentColor,
-                width: 2,
-              ),
+              borderSide: BorderSide(color: accentColor, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Colors.red,
-              ),
+              borderSide: const BorderSide(color: Colors.red),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Colors.red,
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 16,
             ),
           ),
-          style: TextStyle(
-            color: textColor,
-            fontSize: 16,
-          ),
+          style: TextStyle(color: textColor, fontSize: 16),
         ),
       ],
     );
@@ -411,9 +392,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: textColor.withOpacity(0.2),
-        ),
+        border: Border.all(color: textColor.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -426,7 +405,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                     Text(
                       'Роль',
                       style: TextStyle(
-                        color: textColor.withOpacity(0.6),
+                        color: textColor.withValues(alpha: 0.6),
                         fontSize: 14,
                       ),
                     ),
@@ -441,38 +420,32 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                       decoration: InputDecoration(
                         hintText: 'Например: Разработчик',
                         hintStyle: TextStyle(
-                          color: textColor.withOpacity(0.4),
+                          color: textColor.withValues(alpha: 0.4),
                         ),
                         filled: true,
                         fillColor: backgroundColor,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(
-                            color: textColor.withOpacity(0.2),
+                            color: textColor.withValues(alpha: 0.2),
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(
-                            color: textColor.withOpacity(0.2),
+                            color: textColor.withValues(alpha: 0.2),
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color: accentColor,
-                            width: 2,
-                          ),
+                          borderSide: BorderSide(color: accentColor, width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 12,
                         ),
                       ),
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: textColor, fontSize: 14),
                     ),
                   ],
                 ),
@@ -485,7 +458,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                     Text(
                       'Ник-нейм',
                       style: TextStyle(
-                        color: textColor.withOpacity(0.6),
+                        color: textColor.withValues(alpha: 0.6),
                         fontSize: 14,
                       ),
                     ),
@@ -500,38 +473,32 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                       decoration: InputDecoration(
                         hintText: '@username',
                         hintStyle: TextStyle(
-                          color: textColor.withOpacity(0.4),
+                          color: textColor.withValues(alpha: 0.4),
                         ),
                         filled: true,
                         fillColor: backgroundColor,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(
-                            color: textColor.withOpacity(0.2),
+                            color: textColor.withValues(alpha: 0.2),
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(
-                            color: textColor.withOpacity(0.2),
+                            color: textColor.withValues(alpha: 0.2),
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color: accentColor,
-                            width: 2,
-                          ),
+                          borderSide: BorderSide(color: accentColor, width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 12,
                         ),
                       ),
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: textColor, fontSize: 14),
                     ),
                   ],
                 ),
@@ -542,7 +509,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                   onPressed: () => _removeMemberField(index),
                   icon: Icon(
                     Icons.delete_outline,
-                    color: Colors.red.withOpacity(0.7),
+                    color: Colors.red.withValues(alpha: 0.7),
                   ),
                   tooltip: 'Удалить участника',
                 ),
