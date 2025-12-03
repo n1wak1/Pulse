@@ -147,9 +147,12 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
                 if (confirmed == true && mounted) {
                   try {
-                    await _apiService.deleteTask(widget.task!.id);
+                    // Сохраняем задачу перед удалением, чтобы вернуть её вызывающему экрану
+                    final taskToDelete = widget.task!;
+                    await _apiService.deleteTask(taskToDelete.id);
                     if (mounted) {
-                      Navigator.of(context).pop(true); // true означает удаление
+                      // Возвращаем удаленную задачу для обновления списка
+                      Navigator.of(context).pop(taskToDelete);
                     }
                   } catch (e) {
                     if (mounted) {
