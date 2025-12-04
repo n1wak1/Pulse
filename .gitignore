@@ -1,0 +1,9 @@
+target/
+.idea/
+*.iml
+*.log
+.DS_Store
+*.class
+.env
+firebase-credentials.json
+

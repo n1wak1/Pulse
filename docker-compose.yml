@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: pulse-postgres
+    environment:
+      POSTGRES_DB: pulse_db
+      POSTGRES_USER: pulse_user
+      POSTGRES_PASSWORD: pulse_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pulse_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: pulse-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: pulse_db
+      DB_USER: pulse_user
+      DB_PASSWORD: pulse_password
+      SERVER_PORT: 8080
+      FIREBASE_CREDENTIALS_PATH: /app/firebase-credentials.json
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./firebase-credentials.json:/app/firebase-credentials.json:ro
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
