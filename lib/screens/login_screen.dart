@@ -31,8 +31,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    debugPrint('LoginScreen: Starting ${_isLoginMode ? "login" : "registration"}');
-    
+    debugPrint(
+      'LoginScreen: Starting ${_isLoginMode ? "login" : "registration"}',
+    );
+
     setState(() {
       _isLoading = true;
     });
@@ -42,8 +44,10 @@ class _LoginScreenState extends State<LoginScreen> {
     final authService = AuthService();
 
     try {
-      debugPrint('LoginScreen: Calling ${_isLoginMode ? "login" : "register"} API');
-      
+      debugPrint(
+        'LoginScreen: Calling ${_isLoginMode ? "login" : "register"} API',
+      );
+
       if (_isLoginMode) {
         // Вход через API
         await authService.login(email, password);
@@ -53,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       debugPrint('LoginScreen: Auth successful, navigating to HomeScreen');
-      
+
       if (!mounted) {
         debugPrint('LoginScreen: Widget not mounted, skipping navigation');
         return;
@@ -114,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
@@ -146,6 +150,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (!value) return;
                           setState(() {
                             _isLoginMode = true;
+                            _emailController.clear();
+                            _passwordController.clear();
+                            _formKey.currentState?.reset();
                           });
                         },
                       ),
@@ -157,6 +164,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (!value) return;
                           setState(() {
                             _isLoginMode = false;
+                            _emailController.clear();
+                            _passwordController.clear();
+                            _formKey.currentState?.reset();
                           });
                         },
                       ),
@@ -247,24 +257,31 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                               ),
                             ),
-                            if (_isLoginMode) ...[
-                              const SizedBox(height: 12),
-                              Align(
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              height: 40,
+                              child: Align(
                                 alignment: Alignment.centerRight,
-                                child: TextButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const ForgotPasswordScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: const Text('Забыли пароль?'),
+                                child: Visibility(
+                                  visible: _isLoginMode,
+                                  maintainSize: true,
+                                  maintainAnimation: true,
+                                  maintainState: true,
+                                  child: TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const ForgotPasswordScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text('Забыли пароль?'),
+                                  ),
                                 ),
                               ),
-                            ],
+                            ),
                           ],
                         ),
                       ),

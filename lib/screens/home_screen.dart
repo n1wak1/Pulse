@@ -36,9 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Выйти'),
           ),
         ],
@@ -48,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (confirmed == true && mounted) {
       final authService = AuthService();
       await authService.logout();
-      
+
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -94,17 +92,10 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Backlog',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.group),
-            label: 'Команда',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Backlog'),
+          BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Команда'),
         ],
       ),
     );
   }
 }
-

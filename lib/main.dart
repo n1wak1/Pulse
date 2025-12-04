@@ -12,7 +12,7 @@ const Color kActionButtonColor = Color(0xFF636363);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Инициализация Firebase
   // Примечание: Для работы нужны файлы google-services.json (Android) и GoogleService-Info.plist (iOS)
   // Если файлы отсутствуют, Firebase будет инициализирован с ошибкой, но приложение продолжит работу
@@ -22,7 +22,7 @@ void main() async {
     debugPrint('Firebase initialization error: $e');
     debugPrint('Приложение будет работать, но обмен токенов может не работать');
   }
-  
+
   runApp(const MyApp());
 }
 
@@ -113,12 +113,10 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       home: _isLoading
-          ? const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            )
+          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
           : _isAuthenticated
-              ? const HomeScreen()
-              : const LoginScreen(),
+          ? const HomeScreen()
+          : const LoginScreen(),
     );
   }
 }
