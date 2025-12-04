@@ -239,6 +239,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Название команды
+                      const SizedBox(height: 16),
                       _buildTextField(
                         controller: _teamNameController,
                         label: 'Название команды',
