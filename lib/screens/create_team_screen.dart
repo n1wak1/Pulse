@@ -5,6 +5,8 @@ import '../models/team_data.dart';
 import '../models/team_response.dart';
 import '../services/team_service.dart';
 import '../core/api_client.dart';
+import '../core/api_exception.dart';
+import 'login_screen.dart';
 
 class CreateTeamScreen extends StatefulWidget {
   final Function(TeamData)? onTeamCreated;
@@ -153,6 +155,36 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
         }
         _roleControllers[0].clear();
         _nicknameControllers[0].clear();
+      } on ApiException catch (e) {
+        // Закрываем индикатор загрузки
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+
+        // Если ошибка авторизации, перенаправляем на экран входа
+        if (e.message.contains('Не авторизован') || e.message.contains('401')) {
+          if (mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
+              (route) => false,
+            );
+          }
+          return;
+        }
+
+        // Показываем ошибку
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.message),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          );
+        }
       } catch (e) {
         // Закрываем индикатор загрузки
         if (mounted) {

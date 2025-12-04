@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
 import '../services/api_service.dart';
+import '../core/api_exception.dart';
+import 'login_screen.dart';
 
 class TaskDetailScreen extends StatefulWidget {
   final Task? task; // null для создания, не null для редактирования
@@ -81,10 +83,30 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         if (!mounted) return;
         Navigator.of(navigatorContext).pop(updatedTask);
       }
+    } on ApiException catch (e) {
+      if (mounted) {
+        // Если ошибка авторизации, перенаправляем на экран входа
+        if (e.message.contains('Не авторизован') || e.message.contains('401')) {
+          Navigator.of(navigatorContext).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+            (route) => false,
+          );
+          return;
+        }
+        ScaffoldMessenger.of(navigatorContext).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(navigatorContext).showSnackBar(
-          SnackBar(content: Text('Ошибка: $e')),
+          SnackBar(
+            content: Text('Ошибка: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -154,10 +176,30 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                       // Возвращаем удаленную задачу для обновления списка
                       Navigator.of(context).pop(taskToDelete);
                     }
+                  } on ApiException catch (e) {
+                    if (mounted) {
+                      // Если ошибка авторизации, перенаправляем на экран входа
+                      if (e.message.contains('Не авторизован') || e.message.contains('401')) {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          (route) => false,
+                        );
+                        return;
+                      }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(e.message),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
                   } catch (e) {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Ошибка удаления: $e')),
+                        SnackBar(
+                          content: Text('Ошибка удаления: $e'),
+                          backgroundColor: Colors.red,
+                        ),
                       );
                     }
                   }

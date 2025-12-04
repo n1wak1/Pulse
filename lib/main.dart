@@ -1,17 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'screens/login_screen.dart';
+import 'screens/home_screen.dart';
+import 'config/api_config.dart';
 
 const Color kPrimaryColor = Color(0xFF73A168);
 const Color kBackgroundColor = Color(0xFFFAFAFA);
 const Color kTextColor = Color(0xFF000000);
 const Color kActionButtonColor = Color(0xFF636363);
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Инициализация Firebase
+  // Примечание: Для работы нужны файлы google-services.json (Android) и GoogleService-Info.plist (iOS)
+  // Если файлы отсутствуют, Firebase будет инициализирован с ошибкой, но приложение продолжит работу
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Firebase initialization error: $e');
+    debugPrint('Приложение будет работать, но обмен токенов может не работать');
+  }
+  
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _isLoading = true;
+  bool _isAuthenticated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final token = await ApiConfig.getAuthToken();
+    setState(() {
+      _isAuthenticated = token != null && token.isNotEmpty;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,8 +114,13 @@ class MyApp extends StatelessWidget {
           elevation: 0,
         ),
       ),
-      // При каждом запуске приложения показываем экран логина
-      home: const LoginScreen(),
+      home: _isLoading
+          ? const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            )
+          : _isAuthenticated
+              ? const HomeScreen()
+              : const LoginScreen(),
     );
   }
 }

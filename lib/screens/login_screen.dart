@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'home_screen.dart';
 import 'forgot_password_screen.dart';
+import '../services/auth_service.dart';
+import '../core/api_exception.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,89 +31,77 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    debugPrint('LoginScreen: Starting ${_isLoginMode ? "login" : "registration"}');
+    
     setState(() {
       _isLoading = true;
     });
 
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final authService = AuthService();
+
     try {
-      // TODO: Подключить API авторизации/регистрации через Firebase
-      // 
-      // Процесс:
-      // 1. Приложение отправляет email и password на бэкенд
-      // 2. Бэкенд авторизует пользователя в Firebase
-      // 3. Бэкенд возвращает токен (Firebase ID Token или JWT)
-      // 4. Приложение сохраняет токен и переходит на экран с задачами
-      // 
-      // Для логина: POST /api/auth/login
-      // Для регистрации: POST /api/auth/register
-      // 
-      // Пример запроса для логина:
-      // final email = _emailController.text.trim();
-      // final password = _passwordController.text;
-      // final response = await http.post(
-      //   Uri.parse('http://localhost:8080/api/auth/login'),
-      //   headers: {'Content-Type': 'application/json'},
-      //   body: jsonEncode({
-      //     'email': email,
-      //     'password': password,
-      //   }),
-      // );
-      // 
-      // Пример запроса для регистрации:
-      // final response = await http.post(
-      //   Uri.parse('http://localhost:8080/api/auth/register'),
-      //   headers: {'Content-Type': 'application/json'},
-      //   body: jsonEncode({
-      //     'email': email,
-      //     'password': password,
-      //     'displayName': 'Имя пользователя', // опционально
-      //   }),
-      // );
-      //
-      // После успешной авторизации:
-      // 1. Получить токен из ответа: final token = responseData['token'];
-      // 2. Сохранить токен в безопасное хранилище
-      // 3. Перейти на экран с задачами:
-      //    Navigator.pushReplacement(
-      //      context,
-      //      MaterialPageRoute(builder: (_) => const TaskScreen()),
-      //    );
+      debugPrint('LoginScreen: Calling ${_isLoginMode ? "login" : "register"} API');
+      
+      if (_isLoginMode) {
+        // Вход через API
+        await authService.login(email, password);
+      } else {
+        // Регистрация через API
+        await authService.register(email, password);
+      }
 
-      // Моковая авторизация - всегда успешный вход
-      // TODO: Заменить на реальную авторизацию через AuthService
-      // final authService = AuthService();
-      // final email = _emailController.text.trim();
-      // final password = _passwordController.text;
-      // 
-      // if (_isLoginMode) {
-      //   final authResponse = await authService.login(email, password);
-      // } else {
-      //   final authResponse = await authService.register(email, password);
-      // }
+      debugPrint('LoginScreen: Auth successful, navigating to HomeScreen');
+      
+      if (!mounted) {
+        debugPrint('LoginScreen: Widget not mounted, skipping navigation');
+        return;
+      }
 
-      await Future.delayed(const Duration(seconds: 1));
-
-      if (!mounted) return;
-
-      // Переход на главный экран
+      // Переход на главный экран после успешной авторизации
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
-    } catch (e) {
-      // Обработка ошибок
-      if (!mounted) return;
+    } on ApiException catch (e) {
+      // Обработка ошибок API
+      debugPrint('LoginScreen: ApiException caught: ${e.message}');
+      if (!mounted) {
+        debugPrint('LoginScreen: Widget not mounted, skipping error display');
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Произошла ошибка: ${e.toString()}'),
+          content: Text(e.message),
           backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } catch (e, stackTrace) {
+      // Обработка других ошибок (сеть, таймаут и т.д.)
+      debugPrint('LoginScreen: Exception caught: $e');
+      debugPrint('LoginScreen: Stack trace: $stackTrace');
+      if (!mounted) {
+        debugPrint('LoginScreen: Widget not mounted, skipping error display');
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ошибка подключения: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
         ),
       );
     } finally {
+      debugPrint('LoginScreen: Finally block executed');
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
+        debugPrint('LoginScreen: Loading state set to false');
+      } else {
+        debugPrint('LoginScreen: Widget not mounted, cannot update state');
       }
     }
   }

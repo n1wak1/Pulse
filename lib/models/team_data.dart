@@ -24,7 +24,9 @@ class TeamData {
       name: teamResponse.name,
       description: teamResponse.description ?? '',
       goal: '', // API не возвращает goal, оставляем пустым
-      members: [], // API не возвращает members, оставляем пустым
+      members: teamResponse.members.map((m) => 
+        TeamMember(role: m.role, nickname: m.userName)
+      ).toList(),
     );
   }
 

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/task.dart';
 import '../widgets/task_card.dart';
 import '../services/api_service.dart';
+import '../core/api_exception.dart';
 import 'task_detail_screen.dart';
+import 'login_screen.dart';
 
 class BacklogScreen extends StatefulWidget {
   const BacklogScreen({super.key});
@@ -48,6 +50,29 @@ class _BacklogScreenState extends State<BacklogScreen> {
           _isLoading = false;
         });
       }
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        // Если ошибка авторизации, перенаправляем на экран входа
+        if (e.message.contains('Не авторизован') || e.message.contains('401')) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+            (route) => false,
+          );
+          return;
+        }
+        // Показываем ошибку только если уже есть задачи
+        if (_tasks.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -56,7 +81,10 @@ class _BacklogScreenState extends State<BacklogScreen> {
         // Не показываем ошибку при первой загрузке, если это просто отсутствие подключения
         if (_tasks.isNotEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка загрузки задач: $e')),
+            SnackBar(
+              content: Text('Ошибка загрузки задач: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }

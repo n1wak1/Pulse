@@ -5,8 +5,10 @@ import '../models/team_data.dart';
 import '../services/api_service.dart';
 import '../services/team_service.dart';
 import '../core/api_client.dart';
+import '../core/api_exception.dart';
 import 'create_team_screen.dart';
 import 'task_detail_screen.dart';
+import 'login_screen.dart';
 import '../widgets/task_card.dart';
 
 class TeamScreen extends StatefulWidget {
@@ -62,17 +64,25 @@ class _TeamScreenState extends State<TeamScreen> {
         _teamName = widget.teamData!.name;
         _teamMembers = widget.teamData!.members;
       } else {
-        // TODO: Загрузить команду пользователя через API
-        // final teams = await _teamService.getAllTeams();
-        // if (teams.isNotEmpty) {
-        //   final team = teams.first;
-        //   _teamName = team.name;
-        //   _teamMembers = team.members.map((m) => 
-        //     TeamMember(role: m.role, nickname: m.userName)
-        //   ).toList();
-        // }
-        _teamName = 'Моя команда';
-        _teamMembers = [];
+        // Загружаем команды пользователя через API
+        try {
+          final teams = await _teamService.getAllTeams();
+          if (teams.isNotEmpty) {
+            final team = teams.first;
+            _teamName = team.name;
+            // Преобразуем TeamMemberApi в TeamMember для UI
+            _teamMembers = team.members.map((m) => 
+              TeamMember(role: m.role, nickname: m.userName)
+            ).toList();
+          } else {
+            _teamName = 'Моя команда';
+            _teamMembers = [];
+          }
+        } catch (e) {
+          // Если не удалось загрузить команды, используем значения по умолчанию
+          _teamName = 'Моя команда';
+          _teamMembers = [];
+        }
       }
 
       if (mounted) {
@@ -81,17 +91,61 @@ class _TeamScreenState extends State<TeamScreen> {
           _isLoading = false;
         });
       }
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        // Если ошибка авторизации, перенаправляем на экран входа
+        if (e.message.contains('Не авторизован') || e.message.contains('401')) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+            (route) => false,
+          );
+          return;
+        }
+        // Используем переданные данные команды при ошибке загрузки задач
+        if (widget.teamData != null) {
+          _teamName = widget.teamData!.name;
+          _teamMembers = widget.teamData!.members;
+        } else {
+          _teamName = 'Моя команда';
+          _teamMembers = [];
+        }
+        _tasks = [];
+        
+        // Показываем ошибку
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
-        // Используем моковые данные при ошибке
+        // Используем переданные данные команды при ошибке загрузки задач
         if (widget.teamData != null) {
           _teamName = widget.teamData!.name;
           _teamMembers = widget.teamData!.members;
+        } else {
+          _teamName = 'Моя команда';
+          _teamMembers = [];
         }
         _tasks = [];
+        
+        // Показываем ошибку только если есть задачи, чтобы не пугать пользователя при первом запуске
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка загрузки данных: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
     }
   }

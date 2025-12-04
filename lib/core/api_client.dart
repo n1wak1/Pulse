@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
+import 'api_exception.dart';
 
 /// Базовый класс для работы с API
 class ApiClient {
@@ -10,15 +12,19 @@ class ApiClient {
       : baseUrl = baseUrl ?? ApiConfig.baseUrl;
 
   /// Получение заголовков для запросов
-  Map<String, String> _getHeaders({Map<String, String>? additionalHeaders}) {
+  Future<Map<String, String>> _getHeaders({Map<String, String>? additionalHeaders}) async {
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
 
-    final token = ApiConfig.getAuthToken();
+    final token = await ApiConfig.getAuthToken();
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';
+      // Логируем только начало токена для безопасности
+      debugPrint('ApiClient: Using token: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
+    } else {
+      debugPrint('ApiClient: No token found');
     }
 
     if (additionalHeaders != null) {
@@ -40,11 +46,16 @@ class ApiClient {
         uri = uri.replace(queryParameters: queryParameters);
       }
 
+      debugPrint('ApiClient: GET $endpoint');
+      final headers = await _getHeaders();
+      debugPrint('ApiClient: Headers keys: ${headers.keys.toList()}');
+      
       final response = await http.get(
         uri,
-        headers: _getHeaders(),
+        headers: headers,
       );
 
+      debugPrint('ApiClient: Response status: ${response.statusCode}');
       return _handleResponse(response);
     } catch (e) {
       throw ApiException('Ошибка при выполнении GET запроса: $e');
@@ -59,7 +70,7 @@ class ApiClient {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl$endpoint'),
-        headers: _getHeaders(),
+        headers: await _getHeaders(),
         body: body != null ? jsonEncode(body) : null,
       );
 
@@ -77,7 +88,7 @@ class ApiClient {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl$endpoint'),
-        headers: _getHeaders(),
+        headers: await _getHeaders(),
         body: body != null ? jsonEncode(body) : null,
       );
 
@@ -92,7 +103,7 @@ class ApiClient {
     try {
       final response = await http.delete(
         Uri.parse('$baseUrl$endpoint'),
-        headers: _getHeaders(),
+        headers: await _getHeaders(),
       );
 
       return _handleResponse(response);
@@ -116,7 +127,24 @@ class ApiClient {
         throw ApiException('Ошибка парсинга JSON: $e');
       }
     } else if (response.statusCode == 401) {
-      throw ApiException('Не авторизован. Проверьте токен доступа.');
+      // Очищаем токен при 401 ошибке (не ждем завершения, так как это не критично)
+      ApiConfig.clearAuthToken().catchError((_) {});
+      throw ApiException('Не авторизован. Войдите снова.');
+    } else if (response.statusCode == 403) {
+      // Ошибка доступа - возможно токен неверный или истек
+      debugPrint('ApiClient: 403 Forbidden - возможно проблема с токеном');
+      debugPrint('ApiClient: Response body: ${response.body}');
+      try {
+        final errorBody = jsonDecode(response.body) as Map<String, dynamic>;
+        final errorMessage = errorBody['message'] as String? ?? 
+                           errorBody['error'] as String? ?? 
+                           'Доступ запрещен';
+        ApiConfig.clearAuthToken().catchError((_) {});
+        throw ApiException(errorMessage);
+      } catch (e) {
+        ApiConfig.clearAuthToken().catchError((_) {});
+        throw ApiException('Доступ запрещен. Возможно, токен неверный или истек. Войдите снова.');
+      }
     } else if (response.statusCode == 404) {
       throw ApiException('Ресурс не найден.');
     } else if (response.statusCode >= 500) {
@@ -133,15 +161,5 @@ class ApiClient {
       }
     }
   }
-}
-
-/// Исключение для ошибок API
-class ApiException implements Exception {
-  final String message;
-
-  ApiException(this.message);
-
-  @override
-  String toString() => message;
 }
 
