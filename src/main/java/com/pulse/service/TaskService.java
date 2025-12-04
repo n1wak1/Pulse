@@ -61,23 +61,40 @@ public class TaskService {
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
         task.setStatus(request.getStatus());
+        task.setCreator(currentUser); // Устанавливаем создателя задачи
+
+        // Определяем команду для задачи
+        Team team = null;
+        if (request.getTeamId() != null) {
+            // Если teamId указан, используем его
+            team = teamRepository.findById(request.getTeamId())
+                    .orElseThrow(() -> new RuntimeException("Team not found"));
+            
+            // Проверяем, что пользователь является членом команды
+            if (!teamMemberRepository.existsByTeamAndUser(team, currentUser)) {
+                throw new RuntimeException("Access denied: User is not a member of this team");
+            }
+        } else {
+            // Если teamId не указан, автоматически берем первую команду пользователя
+            List<Team> userTeams = teamRepository.findByUserMembership(currentUser);
+            if (userTeams.isEmpty()) {
+                throw new RuntimeException("User must be a member of at least one team to create tasks");
+            }
+            // Берем первую (самую новую) команду пользователя
+            team = userTeams.get(0);
+        }
+        task.setProject(team);
 
         if (request.getAssigneeId() != null) {
             User assignee = userRepository.findById(request.getAssigneeId())
                     .orElseThrow(() -> new RuntimeException("Assignee not found"));
             
-            // Проверяем, что assignee в команде пользователя
-            if (!isUserInSameTeam(currentUser, assignee)) {
-                throw new RuntimeException("Assignee not found in user's team");
+            // Проверяем, что assignee в той же команде
+            if (!teamMemberRepository.existsByTeamAndUser(team, assignee)) {
+                throw new RuntimeException("Assignee must be a member of the same team");
             }
             
             task.setAssignee(assignee);
-        }
-
-        if (request.getProjectId() != null) {
-            Team project = teamRepository.findById(request.getProjectId())
-                    .orElseThrow(() -> new RuntimeException("Project not found"));
-            task.setProject(project);
         }
 
         task.setSprintId(request.getSprintId());
@@ -106,12 +123,33 @@ public class TaskService {
         if (request.getStatus() != null) {
             task.setStatus(request.getStatus());
         }
+        // Определяем команду задачи (текущая или новая из запроса)
+        Team taskTeam = task.getProject();
+        if (request.getTeamId() != null) {
+            Team newTeam = teamRepository.findById(request.getTeamId())
+                    .orElseThrow(() -> new RuntimeException("Team not found"));
+            
+            // Проверяем, что пользователь является членом команды
+            if (!teamMemberRepository.existsByTeamAndUser(newTeam, currentUser)) {
+                throw new RuntimeException("Access denied: User is not a member of this team");
+            }
+            
+            taskTeam = newTeam;
+            task.setProject(newTeam);
+        }
+        
+        // Проверяем, что у задачи есть команда
+        if (taskTeam == null) {
+            throw new RuntimeException("Task must belong to a team");
+        }
+        
         if (request.getAssigneeId() != null) {
             User assignee = userRepository.findById(request.getAssigneeId())
                     .orElseThrow(() -> new RuntimeException("Assignee not found"));
             
-            if (!isUserInSameTeam(currentUser, assignee)) {
-                throw new RuntimeException("Assignee not found in user's team");
+            // Проверяем, что assignee в той же команде, что и задача
+            if (!teamMemberRepository.existsByTeamAndUser(taskTeam, assignee)) {
+                throw new RuntimeException("Assignee must be a member of the same team as the task");
             }
             
             task.setAssignee(assignee);
@@ -155,19 +193,38 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
+    public List<TaskDto> getTasksByTeamId(Long teamId) {
+        User currentUser = UserPrincipal.getCurrentUser();
+        
+        // Проверяем, что команда существует
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team not found"));
+        
+        // Проверяем, что пользователь является членом команды
+        if (!teamMemberRepository.existsByTeamAndUser(team, currentUser)) {
+            throw new RuntimeException("Access denied: User is not a member of this team");
+        }
+        
+        // Возвращаем задачи по teamId
+        return taskRepository.findByProjectId(teamId).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
     private boolean belongsToUserTeam(Task task, User user) {
         if (task.getProject() == null) {
-            return true; // Задачи без проекта доступны всем
+            // Задачи без проекта доступны только создателю или назначенному пользователю
+            if (task.getCreator() != null && task.getCreator().getId().equals(user.getId())) {
+                return true;
+            }
+            if (task.getAssignee() != null && task.getAssignee().getId().equals(user.getId())) {
+                return true;
+            }
+            return false;
         }
         return teamMemberRepository.existsByTeamAndUser(task.getProject(), user);
     }
 
-    private boolean isUserInSameTeam(User user1, User user2) {
-        List<Team> user1Teams = teamRepository.findByUserMembership(user1);
-        List<Team> user2Teams = teamRepository.findByUserMembership(user2);
-        
-        return user1Teams.stream().anyMatch(user2Teams::contains);
-    }
 
     private TaskDto convertToDto(Task task) {
         TaskDto dto = new TaskDto();
@@ -175,7 +232,7 @@ public class TaskService {
         dto.setTitle(task.getTitle());
         dto.setDescription(task.getDescription());
         dto.setStatus(task.getStatus());
-        dto.setProjectId(task.getProject() != null ? task.getProject().getId() : null);
+        dto.setTeamId(task.getProject() != null ? task.getProject().getId() : null);
         dto.setSprintId(task.getSprintId());
         dto.setDeadline(task.getDeadline());
         dto.setCreatedAt(task.getCreatedAt());
@@ -184,6 +241,11 @@ public class TaskService {
         if (task.getAssignee() != null) {
             dto.setAssigneeId(task.getAssignee().getId());
             dto.setAssigneeName(task.getAssignee().getDisplayName());
+        }
+
+        if (task.getCreator() != null) {
+            dto.setCreatorId(task.getCreator().getId());
+            dto.setCreatorName(task.getCreator().getDisplayName());
         }
 
         return dto;

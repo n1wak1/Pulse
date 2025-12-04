@@ -18,10 +18,13 @@ public class TaskDto {
     private TaskStatus status;
     private Long assigneeId;
     private String assigneeName;
-    private Long projectId;
+    private Long creatorId;
+    private String creatorName;
+    private Long teamId;
     private Long sprintId;
     private LocalDate deadline;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
+
 

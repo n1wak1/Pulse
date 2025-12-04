@@ -11,3 +11,4 @@ COPY firebase-credentials.json /app/firebase-credentials.json
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
 
+

@@ -11,7 +11,7 @@ import java.util.List;
 
 @Repository
 public interface TeamRepository extends JpaRepository<Team, Long> {
-    @Query("SELECT t FROM Team t JOIN t.members m WHERE m.user = :user")
+    @Query("SELECT DISTINCT t FROM Team t INNER JOIN t.members m WHERE m.user = :user ORDER BY t.createdAt DESC")
     List<Team> findByUserMembership(@Param("user") User user);
 }
 

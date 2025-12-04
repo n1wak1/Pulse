@@ -18,8 +18,9 @@ public class CreateTaskRequest {
     private TaskStatus status;
 
     private Long assigneeId;
-    private Long projectId;
+    private Long teamId;
     private Long sprintId;
     private LocalDate deadline;
 }
+
 

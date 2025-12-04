@@ -33,6 +33,10 @@ public class Task {
     private User assignee;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "creator_id")
+    private User creator;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
     private Team project;
 
@@ -57,4 +61,5 @@ public class Task {
         updatedAt = LocalDateTime.now();
     }
 }
+
 

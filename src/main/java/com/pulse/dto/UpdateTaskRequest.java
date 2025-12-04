@@ -11,7 +11,9 @@ public class UpdateTaskRequest {
     private String description;
     private TaskStatus status;
     private Long assigneeId;
+    private Long teamId;
     private Long sprintId;
     private LocalDate deadline;
 }
+
 

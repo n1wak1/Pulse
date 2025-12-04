@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,6 +26,19 @@ public class TeamService {
 
     @Autowired
     private TeamMemberRepository teamMemberRepository;
+    
+    // Кэш для защиты от дублирования запросов (ключ: userId + name, значение: teamId + timestamp)
+    private final ConcurrentHashMap<String, TeamCreationInfo> recentTeamCreations = new ConcurrentHashMap<>();
+    
+    private static class TeamCreationInfo {
+        Long teamId;
+        long timestamp;
+        
+        TeamCreationInfo(Long teamId, long timestamp) {
+            this.teamId = teamId;
+            this.timestamp = timestamp;
+        }
+    }
 
     public List<TeamDto> getAllTeams() {
         User currentUser = UserPrincipal.getCurrentUser();
@@ -48,18 +62,53 @@ public class TeamService {
     @Transactional
     public TeamDto createTeam(CreateTeamRequest request) {
         User currentUser = UserPrincipal.getCurrentUser();
+        long currentTime = System.currentTimeMillis();
+        
+        // Защита от дублирования: проверяем, не создавалась ли команда с таким именем недавно (в последние 3 секунды)
+        String duplicateKey = currentUser.getId() + "_" + request.getName();
+        
+        synchronized (this) {
+            // Очищаем старые записи (старше 5 секунд)
+            recentTeamCreations.entrySet().removeIf(entry -> 
+                currentTime - entry.getValue().timestamp > 5000
+            );
+            
+            // Проверяем, не создавалась ли команда с таким именем недавно
+            TeamCreationInfo existing = recentTeamCreations.get(duplicateKey);
+            if (existing != null && (currentTime - existing.timestamp) < 3000) {
+                // Если команда создавалась менее 3 секунд назад, возвращаем существующую
+                Team existingTeam = teamRepository.findById(existing.teamId)
+                        .orElse(null);
+                if (existingTeam != null) {
+                    System.out.println("Duplicate request detected for user " + currentUser.getId() + 
+                                     ", team name: " + request.getName() + 
+                                     ", returning existing team ID: " + existing.teamId);
+                    return convertToDto(existingTeam);
+                }
+            }
+        }
         
         Team team = new Team();
         team.setName(request.getName());
         team.setDescription(request.getDescription());
-        team = teamRepository.save(team);
 
         // Добавляем создателя как администратора
         TeamMember adminMember = new TeamMember();
         adminMember.setTeam(team);
         adminMember.setUser(currentUser);
         adminMember.setRole(TeamMemberRole.ADMIN);
-        teamMemberRepository.save(adminMember);
+        
+        // Добавляем в список members команды (каскадное сохранение сохранит его автоматически)
+        team.getMembers().add(adminMember);
+        
+        team = teamRepository.save(team);
+        
+        // Сохраняем в кэш для защиты от дублирования
+        synchronized (this) {
+            recentTeamCreations.put(duplicateKey, new TeamCreationInfo(team.getId(), currentTime));
+        }
+        
+        System.out.println("Team created: ID=" + team.getId() + ", name=" + team.getName() + ", user=" + currentUser.getId());
 
         return convertToDto(team);
     }
@@ -103,4 +152,5 @@ public class TeamService {
         return dto;
     }
 }
+
 

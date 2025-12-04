@@ -2,6 +2,7 @@ package com.pulse.controller;
 
 import com.pulse.dto.CreateTaskRequest;
 import com.pulse.dto.ErrorResponse;
+import com.pulse.dto.GetTasksByTeamRequest;
 import com.pulse.dto.TaskDto;
 import com.pulse.dto.UpdateTaskRequest;
 import com.pulse.model.TaskStatus;
@@ -107,5 +108,25 @@ public class TaskController {
         List<TaskDto> tasks = taskService.getTasksAssignedToMe();
         return ResponseEntity.ok(tasks);
     }
+
+    @PostMapping("/by-team")
+    public ResponseEntity<?> getTasksByTeam(@Valid @RequestBody GetTasksByTeamRequest request) {
+        try {
+            List<TaskDto> tasks = taskService.getTasksByTeamId(request.getTeamId());
+            return ResponseEntity.ok(tasks);
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ErrorResponse(e.getMessage(), "TEAM_NOT_FOUND", null));
+            }
+            if (e.getMessage().contains("Access denied")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new ErrorResponse(e.getMessage(), "ACCESS_DENIED", null));
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(e.getMessage(), "ERROR", null));
+        }
+    }
 }
+
 

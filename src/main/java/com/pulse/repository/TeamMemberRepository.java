@@ -16,3 +16,4 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     boolean existsByTeamAndUser(Team team, User user);
 }
 
+

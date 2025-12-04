@@ -16,19 +16,23 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        System.err.println("Validation error occurred: " + ex.getMessage());
         Map<String, Object> details = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             details.put(fieldName, errorMessage);
+            System.err.println("Field error: " + fieldName + " - " + errorMessage);
         });
         
         ErrorResponse errorResponse = new ErrorResponse("Validation failed", "VALIDATION_ERROR", details);
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        System.err.println("Generic exception occurred: " + ex.getMessage());
+        ex.printStackTrace();
         ErrorResponse errorResponse = new ErrorResponse(
             ex.getMessage() != null ? ex.getMessage() : "Internal server error",
             "INTERNAL_ERROR",
@@ -37,4 +41,5 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 }
+
 

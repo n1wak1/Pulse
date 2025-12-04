@@ -44,9 +44,16 @@ public class TeamController {
     @PostMapping
     public ResponseEntity<?> createTeam(@Valid @RequestBody CreateTeamRequest request) {
         try {
+            // Логирование для отладки
+            System.out.println("Received create team request: name=" + request.getName() + ", description=" + request.getDescription());
+            System.out.println("Request hash: " + (request.getName() + request.getDescription() + System.currentTimeMillis() / 1000).hashCode());
+            
             TeamDto team = teamService.createTeam(request);
+            System.out.println("Team created successfully with ID: " + team.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(team);
         } catch (RuntimeException e) {
+            System.err.println("Error creating team: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse(e.getMessage(), "VALIDATION_ERROR", null));
         }
@@ -67,4 +74,5 @@ public class TeamController {
         }
     }
 }
+
 
