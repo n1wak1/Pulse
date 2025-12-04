@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class Task {
   final int id;
   final String title;
@@ -98,7 +100,8 @@ class Task {
       if (projectId != null) 'projectId': projectId,
       if (sprintId != null) 'sprintId': sprintId,
       if (assigneeId != null) 'assigneeId': assigneeId,
-      if (deadline != null) 'deadline': deadline!.toIso8601String().split('T')[0],
+      if (deadline != null)
+        'deadline': deadline!.toIso8601String().split('T')[0],
     };
   }
 
@@ -109,7 +112,8 @@ class Task {
       'status': status.toBackendString(),
       if (assigneeId != null) 'assigneeId': assigneeId,
       if (sprintId != null) 'sprintId': sprintId,
-      if (deadline != null) 'deadline': deadline!.toIso8601String().split('T')[0],
+      if (deadline != null)
+        'deadline': deadline!.toIso8601String().split('T')[0],
     };
   }
 }
@@ -144,17 +148,16 @@ enum TaskStatus {
   String toBackendString() => backendValue;
 
   // Цвет для статуса
-  int get colorValue {
+  Color get colorValue {
     switch (this) {
       case TaskStatus.backlog:
-        return 0xFFFF0000; // Красный
+        return const Color.fromARGB(255, 223, 223, 223); // Красный
       case TaskStatus.inProgress:
-        return 0xFFFFA500; // Оранжевый
+        return const Color.fromARGB(255, 151, 208, 255); // Оранжевый
       case TaskStatus.review:
-        return 0xFF0000FF; // Синий
+        return const Color.fromARGB(255, 209, 186, 248); // Синий
       case TaskStatus.done:
-        return 0xFF00FF00; // Зеленый
+        return Color.fromARGB(255, 186, 255, 171); // Зеленый
     }
   }
 }
-

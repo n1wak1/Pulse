@@ -5,11 +5,7 @@ class TaskCard extends StatelessWidget {
   final Task task;
   final VoidCallback? onTap;
 
-  const TaskCard({
-    super.key,
-    required this.task,
-    this.onTap,
-  });
+  const TaskCard({super.key, required this.task, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +15,9 @@ class TaskCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Color(task.status.colorValue),
+          color: task.status.colorValue,
           borderRadius: BorderRadius.circular(8),
-            boxShadow: [
+          boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 4,
@@ -58,4 +54,3 @@ class TaskCard extends StatelessWidget {
     );
   }
 }
-

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'backlog_screen.dart';
-import 'team_screen.dart';
+import 'team_screen/team_screen.dart';
 import 'login_screen.dart';
-import '../models/team_data.dart';
 import '../services/auth_service.dart';
-import '../config/api_config.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,13 +13,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  TeamData? _teamData;
-
-  void _onTeamCreated(TeamData teamData) {
-    setState(() {
-      _teamData = teamData;
-    });
-  }
 
   Future<void> _logout() async {
     final confirmed = await showDialog<bool>(
@@ -71,13 +62,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: IndexedStack(
         index: _currentIndex,
-        children: [
-          const BacklogScreen(),
-          TeamScreen(
-            key: ValueKey(_teamData?.name),
-            teamData: _teamData,
-            onTeamCreated: _onTeamCreated,
-          ),
+        children: const [
+          BacklogScreen(),
+          TeamScreen(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
