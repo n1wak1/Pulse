@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'backlog_screen.dart';
+import 'backlog_screen/backlog_screen.dart';
 import 'team_screen/team_screen.dart';
 import 'login_screen.dart';
 import '../services/auth_service.dart';
@@ -62,10 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: IndexedStack(
         index: _currentIndex,
-        children: const [
-          BacklogScreen(),
-          TeamScreen(),
-        ],
+        children: const [BacklogScreen(), TeamScreen()],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,

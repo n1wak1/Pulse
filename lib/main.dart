@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'notifiers/current_project_notifier.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'config/api_config.dart';
@@ -23,7 +25,12 @@ void main() async {
     debugPrint('Приложение будет работать, но обмен токенов может не работать');
   }
 
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => CurrentProjectNotifier(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {

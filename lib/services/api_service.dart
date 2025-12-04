@@ -1,13 +1,11 @@
 import 'package:flutter/foundation.dart';
 import '../models/task.dart';
 import '../core/api_client.dart';
-import '../core/api_exception.dart';
 
 class ApiService {
   final ApiClient _apiClient;
 
-  ApiService({ApiClient? apiClient}) 
-      : _apiClient = apiClient ?? ApiClient();
+  ApiService({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
 
   // Задачи
   Future<List<Task>> getAllTasks() async {
@@ -25,6 +23,24 @@ class ApiService {
     }
   }
 
+  Future<List<Task>> getTeamTasks(int teamId) async {
+    try {
+      final response = await _apiClient.post(
+        '/api/tasks/by-team',
+        body: {'teamId': teamId},
+      );
+      if (response is List) {
+        return (response as List)
+            .map((json) => Task.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching team tasks: $e');
+      rethrow;
+    }
+  }
+
   Future<Task> getTask(int id) async {
     try {
       final response = await _apiClient.get('/api/tasks/$id');
@@ -37,10 +53,7 @@ class ApiService {
 
   Future<Task> createTask(Map<String, dynamic> taskData) async {
     try {
-      final response = await _apiClient.post(
-        '/api/tasks',
-        body: taskData,
-      );
+      final response = await _apiClient.post('/api/tasks', body: taskData);
       return Task.fromJson(response);
     } catch (e) {
       debugPrint('Error creating task: $e');
@@ -50,10 +63,7 @@ class ApiService {
 
   Future<Task> updateTask(int id, Map<String, dynamic> taskData) async {
     try {
-      final response = await _apiClient.put(
-        '/api/tasks/$id',
-        body: taskData,
-      );
+      final response = await _apiClient.put('/api/tasks/$id', body: taskData);
       return Task.fromJson(response);
     } catch (e) {
       debugPrint('Error updating task: $e');
@@ -74,7 +84,7 @@ class ApiService {
     try {
       final response = await _apiClient.get('/api/tasks/status/$status');
       if (response is List) {
-        return (response as List)
+        return (response)
             .map((json) => Task.fromJson(json as Map<String, dynamic>))
             .toList();
       }
@@ -89,7 +99,7 @@ class ApiService {
     try {
       final response = await _apiClient.get('/api/tasks/assigned-to-me');
       if (response is List) {
-        return (response as List)
+        return (response)
             .map((json) => Task.fromJson(json as Map<String, dynamic>))
             .toList();
       }
@@ -100,4 +110,3 @@ class ApiService {
     }
   }
 }
-

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pulse_mobile/notifiers/current_project_notifier.dart';
 import '../models/task.dart';
 import '../services/api_service.dart';
 import '../core/api_exception.dart';
@@ -54,6 +56,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       if (widget.task == null) {
         // Создание новой задачи
         final newTask = await _apiService.createTask({
+          'teamId': context.read<CurrentProjectNotifier>().currentProject?.id,
           'title': _titleController.text.trim(),
           'description': _descriptionController.text.trim().isEmpty
               ? null
@@ -91,19 +94,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           return;
         }
         ScaffoldMessenger.of(navigatorContext).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(e.message), backgroundColor: Colors.red),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(navigatorContext).showSnackBar(
-          SnackBar(
-            content: Text('Ошибка: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -176,9 +173,12 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   } on ApiException catch (e) {
                     if (mounted) {
                       // Если ошибка авторизации, перенаправляем на экран входа
-                      if (e.message.contains('Не авторизован') || e.message.contains('401')) {
+                      if (e.message.contains('Не авторизован') ||
+                          e.message.contains('401')) {
                         Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const LoginScreen(),
+                          ),
                           (route) => false,
                         );
                         return;

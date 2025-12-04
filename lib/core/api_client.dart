@@ -8,11 +8,12 @@ import 'api_exception.dart';
 class ApiClient {
   final String baseUrl;
 
-  ApiClient({String? baseUrl})
-      : baseUrl = baseUrl ?? ApiConfig.baseUrl;
+  ApiClient({String? baseUrl}) : baseUrl = baseUrl ?? ApiConfig.baseUrl;
 
   /// Получение заголовков для запросов
-  Future<Map<String, String>> _getHeaders({Map<String, String>? additionalHeaders}) async {
+  Future<Map<String, String>> _getHeaders({
+    Map<String, String>? additionalHeaders,
+  }) async {
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -22,7 +23,9 @@ class ApiClient {
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';
       // Логируем только начало токена для безопасности
-      debugPrint('ApiClient: Using token: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
+      debugPrint(
+        'ApiClient: Using token: ${token.substring(0, token.length > 20 ? 20 : token.length)}...',
+      );
     } else {
       debugPrint('ApiClient: No token found');
     }
@@ -41,7 +44,7 @@ class ApiClient {
   }) async {
     try {
       Uri uri = Uri.parse('$baseUrl$endpoint');
-      
+
       if (queryParameters != null && queryParameters.isNotEmpty) {
         uri = uri.replace(queryParameters: queryParameters);
       }
@@ -49,11 +52,8 @@ class ApiClient {
       debugPrint('ApiClient: GET $endpoint');
       final headers = await _getHeaders();
       debugPrint('ApiClient: Headers keys: ${headers.keys.toList()}');
-      
-      final response = await http.get(
-        uri,
-        headers: headers,
-      );
+
+      final response = await http.get(uri, headers: headers);
 
       debugPrint('ApiClient: Response status: ${response.statusCode}');
       return _handleResponse(response);
@@ -63,10 +63,7 @@ class ApiClient {
   }
 
   /// POST запрос
-  Future<Map<String, dynamic>> post(
-    String endpoint, {
-    Map<String, dynamic>? body,
-  }) async {
+  Future<dynamic> post(String endpoint, {Map<String, dynamic>? body}) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl$endpoint'),
@@ -118,7 +115,7 @@ class ApiClient {
       if (response.body.isEmpty) {
         return <String, dynamic>{};
       }
-      
+
       try {
         final decoded = jsonDecode(response.body);
         // Возвращаем как есть - может быть Map или List
@@ -136,14 +133,17 @@ class ApiClient {
       debugPrint('ApiClient: Response body: ${response.body}');
       try {
         final errorBody = jsonDecode(response.body) as Map<String, dynamic>;
-        final errorMessage = errorBody['message'] as String? ?? 
-                           errorBody['error'] as String? ?? 
-                           'Доступ запрещен';
+        final errorMessage =
+            errorBody['message'] as String? ??
+            errorBody['error'] as String? ??
+            'Доступ запрещен';
         ApiConfig.clearAuthToken().catchError((_) {});
         throw ApiException(errorMessage);
       } catch (e) {
         ApiConfig.clearAuthToken().catchError((_) {});
-        throw ApiException('Доступ запрещен. Возможно, токен неверный или истек. Войдите снова.');
+        throw ApiException(
+          'Доступ запрещен. Возможно, токен неверный или истек. Войдите снова.',
+        );
       }
     } else if (response.statusCode == 404) {
       throw ApiException('Ресурс не найден.');
@@ -152,9 +152,10 @@ class ApiClient {
     } else {
       try {
         final errorBody = jsonDecode(response.body) as Map<String, dynamic>;
-        final errorMessage = errorBody['message'] as String? ?? 
-                           errorBody['error'] as String? ?? 
-                           'Неизвестная ошибка';
+        final errorMessage =
+            errorBody['message'] as String? ??
+            errorBody['error'] as String? ??
+            'Неизвестная ошибка';
         throw ApiException(errorMessage);
       } catch (e) {
         throw ApiException('Ошибка запроса: ${response.statusCode}');
@@ -162,4 +163,3 @@ class ApiClient {
     }
   }
 }
-

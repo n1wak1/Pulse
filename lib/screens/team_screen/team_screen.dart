@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'package:pulse_mobile/models/team_data.dart';
 import '../../core/api_client.dart';
 import '../../models/team_member_api.dart';
 import '../../models/team_response.dart';
+import '../../notifiers/current_project_notifier.dart';
 import 'cubit/team_cubit_cubit.dart';
 import '../../services/team_service.dart';
 import '../create_team_screen.dart';
@@ -14,8 +16,10 @@ class TeamScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          TeamCubit(TeamService(ApiClient()))..loadInitialData(),
+      create: (context) => TeamCubit(
+        TeamService(ApiClient()),
+        context.read<CurrentProjectNotifier>(),
+      )..loadInitialData(),
       child: const TeamView(),
     );
   }
@@ -221,11 +225,7 @@ class TeamView extends StatelessWidget {
                 ),
               );
               if (result != null && context.mounted) {
-                final request = CreateTeamRequest(
-                  name: result.name,
-                  description: result.description,
-                );
-                context.read<TeamCubit>().createTeam(request);
+                context.read<TeamCubit>().loadInitialData();
               }
             },
             tooltip: 'Создать команду',
