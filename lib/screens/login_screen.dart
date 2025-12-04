@@ -131,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     'Kanban и аналитика команды в одном месте',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.black.withOpacity(0.7),
+                      color: Colors.black.withValues(alpha: 0.7),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -197,8 +197,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               controller: _passwordController,
                               obscureText: _obscurePassword,
                               decoration: InputDecoration(
-                                labelText:
-                                    _isLoginMode ? 'Пароль' : 'Пароль (минимум 6 символов)',
+                                labelText: _isLoginMode
+                                    ? 'Пароль'
+                                    : 'Пароль (минимум 6 символов)',
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     _obscurePassword
@@ -234,10 +235,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
                                           valueColor:
-                                              AlwaysStoppedAnimation<Color>(Colors.white),
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
                                         ),
                                       )
-                                    : Text(_isLoginMode ? 'Войти' : 'Создать аккаунт'),
+                                    : Text(
+                                        _isLoginMode
+                                            ? 'Войти'
+                                            : 'Создать аккаунт',
+                                      ),
                               ),
                             ),
                             if (_isLoginMode) ...[
@@ -249,7 +256,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => const ForgotPasswordScreen(),
+                                        builder: (_) =>
+                                            const ForgotPasswordScreen(),
                                       ),
                                     );
                                   },
@@ -271,4 +279,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

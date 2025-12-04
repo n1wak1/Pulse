@@ -67,18 +67,15 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         Navigator.of(navigatorContext).pop(newTask);
       } else {
         // Обновление существующей задачи
-        final updatedTask = await _apiService.updateTask(
-          widget.task!.id,
-          {
-            'title': _titleController.text.trim(),
-            'description': _descriptionController.text.trim().isEmpty
-                ? null
-                : _descriptionController.text.trim(),
-            'status': _selectedStatus.toBackendString(),
-            if (_selectedDeadline != null)
-              'deadline': _selectedDeadline!.toIso8601String().split('T')[0],
-          },
-        );
+        final updatedTask = await _apiService.updateTask(widget.task!.id, {
+          'title': _titleController.text.trim(),
+          'description': _descriptionController.text.trim().isEmpty
+              ? null
+              : _descriptionController.text.trim(),
+          'status': _selectedStatus.toBackendString(),
+          if (_selectedDeadline != null)
+            'deadline': _selectedDeadline!.toIso8601String().split('T')[0],
+        });
 
         if (!mounted) return;
         Navigator.of(navigatorContext).pop(updatedTask);
@@ -315,4 +312,3 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     );
   }
 }
-

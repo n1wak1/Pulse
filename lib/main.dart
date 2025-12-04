@@ -54,9 +54,9 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     final baseTextTheme = ThemeData.light().textTheme.apply(
-          bodyColor: kTextColor,
-          displayColor: kTextColor,
-        );
+      bodyColor: kTextColor,
+      displayColor: kTextColor,
+    );
 
     return MaterialApp(
       title: 'Pulse',
@@ -104,9 +104,7 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
         textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(
-            foregroundColor: kActionButtonColor,
-          ),
+          style: TextButton.styleFrom(foregroundColor: kActionButtonColor),
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: kPrimaryColor,
