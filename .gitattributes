@@ -1,0 +1,4 @@
+# Защита ветки backend
+# Эта ветка должна быть защищена на уровне Git сервера (GitHub/GitLab)
+# Настройте branch protection rules для ветки backend
+
