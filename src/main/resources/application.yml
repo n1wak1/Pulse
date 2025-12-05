@@ -32,5 +32,8 @@ logging:
 firebase:
   credentials:
     path: ${FIREBASE_CREDENTIALS_PATH:firebase-credentials.json}
+  api:
+    key: ${FIREBASE_API_KEY:AIzaSyBs3MCZUaiJ4sewBKLPdaZ-N2ArncmNj7Y}
+
 
 

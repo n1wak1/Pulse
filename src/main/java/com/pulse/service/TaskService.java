@@ -195,20 +195,35 @@ public class TaskService {
 
     public List<TaskDto> getTasksByTeamId(Long teamId) {
         User currentUser = UserPrincipal.getCurrentUser();
+        System.out.println("=== TASK SERVICE: getTasksByTeamId ===");
+        System.out.println("TeamId: " + teamId);
+        System.out.println("Current User: " + currentUser.getEmail() + " (ID: " + currentUser.getId() + ")");
         
         // Проверяем, что команда существует
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> {
+                    System.err.println("Team not found: " + teamId);
+                    return new RuntimeException("Team not found");
+                });
+        
+        System.out.println("Team found: " + team.getName() + " (ID: " + team.getId() + ")");
         
         // Проверяем, что пользователь является членом команды
-        if (!teamMemberRepository.existsByTeamAndUser(team, currentUser)) {
+        boolean isMember = teamMemberRepository.existsByTeamAndUser(team, currentUser);
+        System.out.println("User is member: " + isMember);
+        
+        if (!isMember) {
+            System.err.println("Access denied: User " + currentUser.getEmail() + " is not a member of team " + team.getName());
             throw new RuntimeException("Access denied: User is not a member of this team");
         }
         
         // Возвращаем задачи по teamId
-        return taskRepository.findByProjectId(teamId).stream()
+        List<TaskDto> tasks = taskRepository.findByProjectId(teamId).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
+        System.out.println("Tasks found: " + tasks.size());
+        System.out.println("=======================================");
+        return tasks;
     }
 
     private boolean belongsToUserTeam(Task task, User user) {

@@ -6,11 +6,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "team_members")
+@Table(name = "team_participants")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TeamMember {
+public class TeamParticipant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -19,14 +19,10 @@ public class TeamMember {
     @JoinColumn(name = "team_id", nullable = false)
     private Team team;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TeamMemberRole role;
+    private String name; // Имя участника (текст)
+
+    @Column(nullable = false)
+    private String role; // Роль участника (текст)
 }
-
-
 

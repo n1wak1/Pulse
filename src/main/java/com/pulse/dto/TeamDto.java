@@ -15,7 +15,9 @@ public class TeamDto {
     private String name;
     private String description;
     private LocalDateTime createdAt;
-    private List<TeamMemberDto> members;
+    private List<TeamMemberDto> members; // Реальные участники (с аккаунтами)
+    private List<TeamParticipantDto> participants; // Текстовые участники (нулевая версия)
 }
+
 
 

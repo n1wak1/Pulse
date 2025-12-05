@@ -112,9 +112,17 @@ public class TaskController {
     @PostMapping("/by-team")
     public ResponseEntity<?> getTasksByTeam(@Valid @RequestBody GetTasksByTeamRequest request) {
         try {
+            System.out.println("=== GET TASKS BY TEAM REQUEST ===");
+            System.out.println("TeamId: " + request.getTeamId());
+            System.out.println("Request: " + request);
+            
             List<TaskDto> tasks = taskService.getTasksByTeamId(request.getTeamId());
+            System.out.println("Tasks found: " + tasks.size());
+            System.out.println("================================");
             return ResponseEntity.ok(tasks);
         } catch (RuntimeException e) {
+            System.err.println("Error in getTasksByTeam: " + e.getMessage());
+            e.printStackTrace();
             if (e.getMessage().contains("not found")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(new ErrorResponse(e.getMessage(), "TEAM_NOT_FOUND", null));
