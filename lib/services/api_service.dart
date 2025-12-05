@@ -12,7 +12,7 @@ class ApiService {
     try {
       final response = await _apiClient.get('/api/tasks');
       if (response is List) {
-        return (response as List)
+        return response
             .map((json) => Task.fromJson(json as Map<String, dynamic>))
             .toList();
       }
@@ -30,7 +30,7 @@ class ApiService {
         body: {'teamId': teamId},
       );
       if (response is List) {
-        return (response as List)
+        return response
             .map((json) => Task.fromJson(json as Map<String, dynamic>))
             .toList();
       }

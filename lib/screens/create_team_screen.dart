@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import '../models/team_member.dart';
 import '../models/team_data.dart';
 import '../models/team_response.dart';
@@ -86,11 +86,40 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
         final apiClient = ApiClient();
         final teamService = TeamService(apiClient);
 
+        // Собираем участников для отправки на сервер
+        final participants = <Map<String, String>>[];
+        for (int i = 0; i < _roleControllers.length; i++) {
+          final role = _roleControllers[i].text.trim();
+          final nickname = _nicknameControllers[i].text.trim();
+          
+          if (role.isNotEmpty && nickname.isNotEmpty) {
+            participants.add({
+              'name': nickname,
+              'role': role,
+            });
+          }
+        }
+
+        final teamName = _teamNameController.text.trim();
+        final description = _descriptionController.text.trim();
+        
+        debugPrint('CreateTeamScreen: Preparing request');
+        debugPrint('CreateTeamScreen:   name: "$teamName"');
+        debugPrint('CreateTeamScreen:   description: "$description"');
+        debugPrint('CreateTeamScreen:   participants count: ${participants.length}');
+        for (int i = 0; i < participants.length; i++) {
+          debugPrint('CreateTeamScreen:     participant $i: ${participants[i]}');
+        }
+
         // Создаем запрос на создание команды
         final createRequest = CreateTeamRequest(
-          name: _teamNameController.text.trim(),
-          description: _descriptionController.text.trim(),
+          name: teamName,
+          description: description.isNotEmpty ? description : null,
+          participants: participants.isNotEmpty ? participants : null,
         );
+        
+        debugPrint('CreateTeamScreen: Request object created');
+        debugPrint('CreateTeamScreen: Request.toJson(): ${createRequest.toJson()}');
 
         // Отправляем запрос на сервер
         final teamResponse = await teamService.createTeam(createRequest);
@@ -378,10 +407,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
           maxLines: maxLines,
           validator: validator,
           keyboardType: TextInputType.text,
-          inputFormatters: [
-            // Разрешаем ввод любых символов, включая русские
-            FilteringTextInputFormatter.allow(RegExp(r'.*')),
-          ],
+          // Убираем inputFormatters - Flutter по умолчанию поддерживает все символы включая русские
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: textColor.withValues(alpha: 0.4)),
@@ -446,10 +472,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                     TextFormField(
                       controller: _roleControllers[index],
                       keyboardType: TextInputType.text,
-                      inputFormatters: [
-                        // Разрешаем ввод любых символов, включая русские
-                        FilteringTextInputFormatter.allow(RegExp(r'.*')),
-                      ],
+                      // Убираем inputFormatters - Flutter по умолчанию поддерживает все символы включая русские
                       decoration: InputDecoration(
                         hintText: 'Например: Разработчик',
                         hintStyle: TextStyle(
@@ -499,10 +522,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                     TextFormField(
                       controller: _nicknameControllers[index],
                       keyboardType: TextInputType.text,
-                      inputFormatters: [
-                        // Разрешаем ввод любых символов, включая русские
-                        FilteringTextInputFormatter.allow(RegExp(r'.*')),
-                      ],
+                      // Убираем inputFormatters - Flutter по умолчанию поддерживает все символы включая русские
                       decoration: InputDecoration(
                         hintText: '@никнейм',
                         hintStyle: TextStyle(

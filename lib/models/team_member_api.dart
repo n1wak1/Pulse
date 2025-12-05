@@ -16,11 +16,11 @@ class TeamMemberApi {
 
   factory TeamMemberApi.fromJson(Map<String, dynamic> json) {
     return TeamMemberApi(
-      id: json['id'] as int,
-      userId: json['userId'] as int,
-      userName: json['userName'] as String,
-      userEmail: json['userEmail'] as String,
-      role: json['role'] as String,
+      id: (json['id'] as int?) ?? 0,
+      userId: (json['userId'] as int?) ?? 0,
+      userName: (json['userName'] as String?) ?? '',
+      userEmail: (json['userEmail'] as String?) ?? '',
+      role: (json['role'] as String?) ?? '',
     );
   }
 

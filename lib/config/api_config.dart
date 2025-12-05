@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Конфигурация API
@@ -38,19 +39,34 @@ class ApiConfig {
     final prefs = await SharedPreferences.getInstance();
     if (token != null) {
       await prefs.setString(_tokenKey, token);
+      debugPrint('ApiConfig: Token saved successfully');
+      debugPrint('ApiConfig: Token length: ${token.length}');
+      debugPrint('ApiConfig: Token preview: ${token.substring(0, token.length > 50 ? 50 : token.length)}...');
+      debugPrint('ApiConfig: Token starts with eyJ: ${token.startsWith('eyJ')}');
     } else {
       await prefs.remove(_tokenKey);
+      debugPrint('ApiConfig: Token cleared');
     }
   }
   
   /// Получить токен авторизации
   static Future<String?> getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+    final token = prefs.getString(_tokenKey);
+    if (token != null) {
+      debugPrint('ApiConfig: Token retrieved');
+      debugPrint('ApiConfig: Token length: ${token.length}');
+      debugPrint('ApiConfig: Token preview: ${token.substring(0, token.length > 50 ? 50 : token.length)}...');
+      debugPrint('ApiConfig: Token starts with eyJ: ${token.startsWith('eyJ')}');
+    } else {
+      debugPrint('ApiConfig: No token found in storage');
+    }
+    return token;
   }
   
   /// Очистить токен авторизации
   static Future<void> clearAuthToken() async {
+    debugPrint('ApiConfig: Clearing auth token');
     await setAuthToken(null);
   }
 }

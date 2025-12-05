@@ -62,6 +62,40 @@ class _BacklogViewState extends State<BacklogView> {
   }
 
   Future<void> _openCreateTask() async {
+    // Проверяем, выбрана ли команда
+    final currentProjectNotifier = Provider.of<CurrentProjectNotifier>(context, listen: false);
+    final currentTeam = currentProjectNotifier.currentProject;
+
+    if (currentTeam == null) {
+      // Показываем диалог с ошибкой и предложением создать/выбрать команду
+      if (!mounted) return;
+      
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.orange),
+              SizedBox(width: 8),
+              Text('Команда не выбрана'),
+            ],
+          ),
+          content: const Text(
+            'Для создания задачи необходимо выбрать или создать команду.\n\n'
+            'Перейдите на вкладку "Команда" для выбора существующей команды или создания новой.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Понятно'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    // Если команда выбрана, открываем экран создания задачи
     final result = await Navigator.push<Task>(
       context,
       MaterialPageRoute(builder: (context) => const TaskDetailScreen()),
@@ -101,6 +135,7 @@ class _BacklogViewState extends State<BacklogView> {
                 padding: const EdgeInsets.all(16),
                 child: TextField(
                   controller: _searchController,
+                  // Убираем inputFormatters - Flutter по умолчанию поддерживает все символы включая русские
                   decoration: InputDecoration(
                     hintText: 'Поиск задач...',
                     hintStyle: TextStyle(

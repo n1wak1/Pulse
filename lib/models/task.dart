@@ -7,7 +7,8 @@ class Task {
   final TaskStatus status;
   final int? assigneeId;
   final String? assigneeName;
-  final int? projectId;
+  final int? teamId; // Используем teamId вместо projectId
+  final int? projectId; // Оставляем для обратной совместимости
   final int? sprintId;
   final DateTime? deadline;
   final DateTime createdAt;
@@ -20,6 +21,7 @@ class Task {
     required this.status,
     this.assigneeId,
     this.assigneeName,
+    this.teamId,
     this.projectId,
     this.sprintId,
     this.deadline,
@@ -34,6 +36,7 @@ class Task {
     TaskStatus? status,
     int? assigneeId,
     String? assigneeName,
+    int? teamId,
     int? projectId,
     int? sprintId,
     DateTime? deadline,
@@ -47,6 +50,7 @@ class Task {
       status: status ?? this.status,
       assigneeId: assigneeId ?? this.assigneeId,
       assigneeName: assigneeName ?? this.assigneeName,
+      teamId: teamId ?? this.teamId,
       projectId: projectId ?? this.projectId,
       sprintId: sprintId ?? this.sprintId,
       deadline: deadline ?? this.deadline,
@@ -57,6 +61,9 @@ class Task {
 
   // Методы для конвертации в/из JSON
   factory Task.fromJson(Map<String, dynamic> json) {
+    // Поддержка обоих полей: teamId (приоритет) и projectId (обратная совместимость)
+    final teamIdValue = json['teamId'] as int? ?? json['projectId'] as int?;
+
     return Task(
       id: json['id'] as int,
       title: json['title'] as String,
@@ -64,7 +71,8 @@ class Task {
       status: TaskStatus.fromBackendString(json['status'] as String),
       assigneeId: json['assigneeId'] as int?,
       assigneeName: json['assigneeName'] as String?,
-      projectId: json['projectId'] as int?,
+      teamId: teamIdValue,
+      projectId: teamIdValue, // Для обратной совместимости
       sprintId: json['sprintId'] as int?,
       deadline: json['deadline'] != null
           ? DateTime.parse(json['deadline'] as String)
@@ -84,7 +92,8 @@ class Task {
       'status': status.toBackendString(),
       'assigneeId': assigneeId,
       'assigneeName': assigneeName,
-      'projectId': projectId,
+      'teamId': teamId ?? projectId, // Используем teamId, fallback на projectId
+      'projectId': teamId ?? projectId, // Для обратной совместимости
       'sprintId': sprintId,
       'deadline': deadline?.toIso8601String().split('T')[0],
       'createdAt': createdAt.toIso8601String(),
@@ -93,11 +102,12 @@ class Task {
   }
 
   Map<String, dynamic> toCreateJson() {
+    final teamIdValue = teamId ?? projectId;
     return {
       'title': title,
       'description': description,
       'status': status.toBackendString(),
-      if (projectId != null) 'projectId': projectId,
+      if (teamIdValue != null) 'teamId': teamIdValue,
       if (sprintId != null) 'sprintId': sprintId,
       if (assigneeId != null) 'assigneeId': assigneeId,
       if (deadline != null)
@@ -106,11 +116,13 @@ class Task {
   }
 
   Map<String, dynamic> toUpdateJson() {
+    final teamIdValue = teamId ?? projectId;
     return {
       'title': title,
       'description': description,
       'status': status.toBackendString(),
       if (assigneeId != null) 'assigneeId': assigneeId,
+      if (teamIdValue != null) 'teamId': teamIdValue,
       if (sprintId != null) 'sprintId': sprintId,
       if (deadline != null)
         'deadline': deadline!.toIso8601String().split('T')[0],

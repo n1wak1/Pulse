@@ -19,14 +19,29 @@ class TeamData {
 
   /// Создать из TeamResponse (для работы с API)
   factory TeamData.fromTeamResponse(TeamResponse teamResponse) {
+    // Объединяем members (реальные пользователи) и participants (текстовые участники)
+    final allMembers = <TeamMember>[];
+    
+    // Добавляем реальных участников
+    allMembers.addAll(
+      teamResponse.members.map((m) => 
+        TeamMember(role: m.role, nickname: m.userName)
+      )
+    );
+    
+    // Добавляем текстовых участников
+    allMembers.addAll(
+      teamResponse.participants.map((p) => 
+        TeamMember(role: p.role, nickname: p.name)
+      )
+    );
+    
     return TeamData(
       id: teamResponse.id,
       name: teamResponse.name,
       description: teamResponse.description ?? '',
       goal: '', // API не возвращает goal, оставляем пустым
-      members: teamResponse.members.map((m) => 
-        TeamMember(role: m.role, nickname: m.userName)
-      ).toList(),
+      members: allMembers,
     );
   }
 

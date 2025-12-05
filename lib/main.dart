@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'notifiers/current_project_notifier.dart';
 import 'screens/login_screen.dart';
@@ -51,9 +52,30 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _checkAuth() async {
-    final token = await ApiConfig.getAuthToken();
+    // Проверяем авторизацию через Firebase Auth
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+    
+    if (firebaseUser != null) {
+      // Если пользователь авторизован в Firebase, получаем токен
+      try {
+        final token = await firebaseUser.getIdToken(true);
+        if (token != null && token.isNotEmpty) {
+          await ApiConfig.setAuthToken(token);
+          setState(() {
+            _isAuthenticated = true;
+            _isLoading = false;
+          });
+          return;
+        }
+      } catch (e) {
+        debugPrint('Error getting token: $e');
+      }
+    }
+    
+    // Если пользователь не авторизован, очищаем токен
+    await ApiConfig.clearAuthToken();
     setState(() {
-      _isAuthenticated = token != null && token.isNotEmpty;
+      _isAuthenticated = false;
       _isLoading = false;
     });
   }

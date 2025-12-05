@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:pulse_mobile/models/team_data.dart';
@@ -10,6 +11,19 @@ import 'cubit/team_cubit_cubit.dart';
 import '../../services/team_service.dart';
 import '../../widgets/exception_widget.dart';
 import '../create_team_screen.dart';
+
+/// Вспомогательный класс для отображения участников (объединяет members и participants)
+class _MemberDisplay {
+  final String name;
+  final String role;
+  final bool isRealUser;
+
+  _MemberDisplay({
+    required this.name,
+    required this.role,
+    required this.isRealUser,
+  });
+}
 
 class TeamScreen extends StatelessWidget {
   const TeamScreen({super.key});
@@ -247,7 +261,8 @@ class TeamView extends StatelessWidget {
   }
 
   Widget _buildTeamMembersSection(TeamState state) {
-    if (state.currentTeam == null || state.currentTeam!.members.isEmpty) {
+    if (state.currentTeam == null) {
+      debugPrint('TeamScreen: currentTeam is null');
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Text(
@@ -257,30 +272,80 @@ class TeamView extends StatelessWidget {
       );
     }
 
-    final teamMembers = state.currentTeam!.members;
+    final team = state.currentTeam!;
+    debugPrint('TeamScreen: Building members section for team ${team.id} "${team.name}"');
+    debugPrint('TeamScreen:   - members count: ${team.members.length}');
+    debugPrint('TeamScreen:   - participants count: ${team.participants.length}');
+    
+    // Объединяем members (реальные пользователи) и participants (текстовые участники)
+    final allMembers = <_MemberDisplay>[];
+    
+    // Добавляем реальных участников
+    for (final member in team.members) {
+      debugPrint('TeamScreen:   Adding member: ${member.userName} (${member.role})');
+      allMembers.add(_MemberDisplay(
+        name: member.userName,
+        role: member.role,
+        isRealUser: true,
+      ));
+    }
+    
+    // Добавляем текстовых участников
+    for (final participant in team.participants) {
+      debugPrint('TeamScreen:   Adding participant: ${participant.name} (${participant.role})');
+      allMembers.add(_MemberDisplay(
+        name: participant.name,
+        role: participant.role,
+        isRealUser: false,
+      ));
+    }
+    
+    debugPrint('TeamScreen: Total members to display: ${allMembers.length}');
+    
+    if (allMembers.isEmpty) {
+      debugPrint('TeamScreen: No members to display, showing empty state');
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Text(
+          'В этой команде пока нет участников.',
+          style: TextStyle(color: textColor.withValues(alpha: 0.6)),
+        ),
+      );
+    }
+
+    debugPrint('TeamScreen: Rendering ${allMembers.length} member cards');
+    for (int i = 0; i < allMembers.length; i++) {
+      debugPrint('TeamScreen:   Card $i: ${allMembers[i].name} (${allMembers[i].role})');
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Генерируем карточки на основе реальных данных из allMembers
           ...List.generate(
-            teamMembers.length,
-            (index) => TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0.0, end: 1.0),
-              duration: Duration(milliseconds: 300 + (index * 100)),
-              curve: Curves.easeOut,
-              builder: (context, value, child) {
-                return Opacity(
-                  opacity: value,
-                  child: Transform.translate(
-                    offset: Offset(0, 20 * (1 - value)),
-                    child: child,
-                  ),
-                );
-              },
-              child: _buildTeamMemberCard(teamMembers[index]),
-            ),
+            allMembers.length,  // Используем реальное количество участников
+            (index) {
+              final member = allMembers[index];  // Берем реальные данные
+              debugPrint('TeamScreen: Building card widget for: ${member.name} (${member.role})');
+              
+              return TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: Duration(milliseconds: 300 + (index * 100)),
+                curve: Curves.easeOut,
+                builder: (context, value, child) {
+                  return Opacity(
+                    opacity: value,
+                    child: Transform.translate(
+                      offset: Offset(0, 20 * (1 - value)),
+                      child: child,
+                    ),
+                  );
+                },
+                child: _buildMemberCard(member),  // Передаем реальные данные
+              );
+            },
           ),
           const SizedBox(height: 16),
         ],
@@ -288,7 +353,9 @@ class TeamView extends StatelessWidget {
     );
   }
 
-  Widget _buildTeamMemberCard(TeamMemberApi member) {
+  Widget _buildMemberCard(_MemberDisplay member) {
+    debugPrint('TeamScreen: Rendering member card: ${member.name} (${member.role})');
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -320,7 +387,7 @@ class TeamView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  member.role,
+                  member.role,  // Используется реальное значение из данных
                   style: TextStyle(
                     color: textColor,
                     fontSize: 16,
@@ -329,7 +396,7 @@ class TeamView extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  member.userName,
+                  member.name,  // Используется реальное значение из данных
                   style: TextStyle(
                     color: textColor.withValues(alpha: 0.6),
                     fontSize: 14,

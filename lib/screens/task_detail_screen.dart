@@ -220,6 +220,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 ),
                 style: const TextStyle(fontSize: 18),
                 autofocus: !isEditing,
+                // Убираем inputFormatters - Flutter по умолчанию поддерживает все символы включая русские
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Введите название задачи';
@@ -237,6 +238,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 ),
                 maxLines: 5,
                 minLines: 3,
+                // Убираем inputFormatters - Flutter по умолчанию поддерживает все символы включая русские
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<TaskStatus>(
