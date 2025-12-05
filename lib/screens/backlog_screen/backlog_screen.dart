@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../models/task.dart';
 import '../../notifiers/current_project_notifier.dart';
 import '../../services/api_service.dart';
+import '../../widgets/exception_widget.dart';
 import '../../widgets/task_card.dart';
 import '../login_screen.dart';
 import '../task_detail_screen.dart';
@@ -103,10 +104,12 @@ class _BacklogViewState extends State<BacklogView> {
                   decoration: InputDecoration(
                     hintText: 'Поиск задач...',
                     hintStyle: TextStyle(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                     ),
-                    prefixIcon:
-                        const Icon(Icons.search, color: Color(0xFF636363)),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: Color(0xFF636363),
+                    ),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
@@ -125,8 +128,9 @@ class _BacklogViewState extends State<BacklogView> {
               // Task List
               Expanded(
                 child: switch (state) {
-                  BacklogInitial() || BacklogLoading() =>
-                    const Center(child: CircularProgressIndicator()),
+                  BacklogInitial() || BacklogLoading() => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
                   BacklogLoaded(filteredTasks: var filteredTasks) =>
                     filteredTasks.isEmpty
                         ? Center(
@@ -136,13 +140,13 @@ class _BacklogViewState extends State<BacklogView> {
                                 Icon(
                                   Icons.task_alt,
                                   size: 64,
-                                  color: Colors.black.withOpacity(0.3),
+                                  color: Colors.black.withValues(alpha: 0.3),
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
                                   'Задач не найдено',
                                   style: TextStyle(
-                                    color: Colors.black.withOpacity(0.5),
+                                    color: Colors.black.withValues(alpha: 0.5),
                                     fontSize: 16,
                                   ),
                                 ),
@@ -164,9 +168,11 @@ class _BacklogViewState extends State<BacklogView> {
                               },
                             ),
                           ),
-                  BacklogError(message: var message) => Center(
-                      child: Text(message),
-                    ),
+                  BacklogError(message: var message) => ExceptionWidget(
+                    title: 'Не удалось загрузить задачи',
+                    message: message,
+                    onRestart: () => context.read<BacklogCubit>().loadTasks(),
+                  ),
                 },
               ),
             ],

@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Backlog'),
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Задачи'),
           BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Команда'),
         ],
       ),

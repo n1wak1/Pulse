@@ -28,14 +28,14 @@ class TeamCubit extends Cubit<TeamState> {
   }
 
   Future<void> loadInitialData() async {
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(isLoading: true, error: null));
     try {
       final teams = await _teamService.getAllTeams();
       if (teams.isNotEmpty) {
         _currentProjectNotifier.setProject(teams.first);
-        emit(state.copyWith(isLoading: false, teams: teams));
+        emit(state.copyWith(isLoading: false, teams: teams, error: null));
       } else {
-        emit(state.copyWith(isLoading: false, teams: []));
+        emit(state.copyWith(isLoading: false, teams: [], error: null));
       }
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));

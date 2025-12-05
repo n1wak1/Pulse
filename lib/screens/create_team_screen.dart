@@ -489,7 +489,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Ник-нейм',
+                      'Никнейм',
                       style: TextStyle(
                         color: textColor.withValues(alpha: 0.6),
                         fontSize: 14,
@@ -504,7 +504,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                         FilteringTextInputFormatter.allow(RegExp(r'.*')),
                       ],
                       decoration: InputDecoration(
-                        hintText: '@username',
+                        hintText: '@никнейм',
                         hintStyle: TextStyle(
                           color: textColor.withValues(alpha: 0.4),
                         ),

@@ -8,6 +8,7 @@ import '../../models/team_response.dart';
 import '../../notifiers/current_project_notifier.dart';
 import 'cubit/team_cubit_cubit.dart';
 import '../../services/team_service.dart';
+import '../../widgets/exception_widget.dart';
 import '../create_team_screen.dart';
 
 class TeamScreen extends StatelessWidget {
@@ -45,7 +46,11 @@ class TeamView extends StatelessWidget {
               return _buildLoadingState();
             }
             if (state.error != null) {
-              return Center(child: Text('Ошибка: ${state.error}'));
+              return ExceptionWidget(
+                title: 'Не удалось загрузить команды',
+                message: state.error ?? 'Произошла ошибка',
+                onRestart: () => context.read<TeamCubit>().loadInitialData(),
+              );
             }
             return _buildContent(context, state);
           },
@@ -79,7 +84,7 @@ class TeamView extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: Text(
-              'Members of "${state.currentTeam!.name}"',
+              'Участники «${state.currentTeam!.name}»',
               style: TextStyle(
                 color: textColor,
                 fontSize: 20,
@@ -99,9 +104,12 @@ class TeamView extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(32.0),
           child: Text(
-            'No teams found. Create one to get started!',
+            'Команды не найдены. Создайте первую, чтобы начать!',
             textAlign: TextAlign.center,
-            style: TextStyle(color: textColor.withOpacity(0.6), fontSize: 16),
+            style: TextStyle(
+              color: textColor.withValues(alpha: 0.6),
+              fontSize: 16,
+            ),
           ),
         ),
       );
@@ -125,7 +133,7 @@ class TeamView extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isSelected ? accentColor.withOpacity(0.1) : Colors.white,
+        color: isSelected ? accentColor.withValues(alpha: 0.1) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isSelected ? accentColor : Colors.grey.shade300,
@@ -134,8 +142,8 @@ class TeamView extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: isSelected
-                ? accentColor.withOpacity(0.15)
-                : Colors.black.withOpacity(0.05),
+                ? accentColor.withValues(alpha: 0.15)
+                : Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -156,7 +164,10 @@ class TeamView extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               team.description!,
-              style: TextStyle(fontSize: 14, color: textColor.withOpacity(0.7)),
+              style: TextStyle(
+                fontSize: 14,
+                color: textColor.withValues(alpha: 0.7),
+              ),
             ),
           ],
           const SizedBox(height: 16),
@@ -169,11 +180,11 @@ class TeamView extends StatelessWidget {
                       color: accentColor,
                       size: 20,
                     ),
-                    label: Text(
-                      'Selected',
+                    label: const Text(
+                      'Выбрано',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    backgroundColor: accentColor.withOpacity(0.2),
+                    backgroundColor: accentColor.withValues(alpha: 0.2),
                     labelPadding: const EdgeInsets.symmetric(horizontal: 8),
                   )
                 : OutlinedButton(
@@ -187,7 +198,7 @@ class TeamView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text('Select Team'),
+                    child: const Text('Выбрать команду'),
                   ),
           ),
         ],
@@ -203,7 +214,7 @@ class TeamView extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'Your Teams',
+              'Ваши команды',
               style: TextStyle(
                 color: textColor,
                 fontSize: 32,
@@ -240,8 +251,8 @@ class TeamView extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Text(
-          'No members in this team.',
-          style: TextStyle(color: textColor.withOpacity(0.6)),
+          'В этой команде пока нет участников.',
+          style: TextStyle(color: textColor.withValues(alpha: 0.6)),
         ),
       );
     }
@@ -286,7 +297,7 @@ class TeamView extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -298,7 +309,7 @@ class TeamView extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.1),
+              color: accentColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(Icons.person, color: accentColor, size: 24),
@@ -320,7 +331,7 @@ class TeamView extends StatelessWidget {
                 Text(
                   member.userName,
                   style: TextStyle(
-                    color: textColor.withOpacity(0.6),
+                    color: textColor.withValues(alpha: 0.6),
                     fontSize: 14,
                   ),
                 ),

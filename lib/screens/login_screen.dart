@@ -190,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
                               decoration: const InputDecoration(
-                                labelText: 'Email',
+                                labelText: 'Эл. почта',
                               ),
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {

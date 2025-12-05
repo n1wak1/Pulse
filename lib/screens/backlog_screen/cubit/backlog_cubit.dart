@@ -14,7 +14,7 @@ class BacklogCubit extends Cubit<BacklogState> {
   final CurrentProjectNotifier _currentProjectNotifier;
 
   BacklogCubit(this._apiService, this._currentProjectNotifier)
-      : super(BacklogInitial()) {
+    : super(BacklogInitial()) {
     _currentProjectNotifier.addListener(loadTasks);
     loadTasks();
   }
@@ -46,9 +46,12 @@ class BacklogCubit extends Cubit<BacklogState> {
         emit(loadedState.copyWith(filteredTasks: loadedState.tasks));
       } else {
         final filtered = loadedState.tasks.where((task) {
-          final titleMatch = task.title.toLowerCase().contains(query.toLowerCase());
+          final titleMatch = task.title.toLowerCase().contains(
+            query.toLowerCase(),
+          );
           final descriptionMatch =
-              task.description?.toLowerCase().contains(query.toLowerCase()) ?? false;
+              task.description?.toLowerCase().contains(query.toLowerCase()) ??
+              false;
           return titleMatch || descriptionMatch;
         }).toList();
         emit(loadedState.copyWith(filteredTasks: filtered));
@@ -62,4 +65,3 @@ class BacklogCubit extends Cubit<BacklogState> {
     return super.close();
   }
 }
-

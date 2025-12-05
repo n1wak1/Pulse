@@ -119,10 +119,10 @@ class Task {
 }
 
 enum TaskStatus {
-  backlog('Backlog', 'BACKLOG'),
-  inProgress('In Progress', 'IN_PROGRESS'),
-  review('Review', 'REVIEW'),
-  done('Done', 'DONE');
+  backlog('Бэклог', 'BACKLOG'),
+  inProgress('В работе', 'IN_PROGRESS'),
+  review('На проверке', 'REVIEW'),
+  done('Готово', 'DONE');
 
   const TaskStatus(this.label, this.backendValue);
   final String label;
