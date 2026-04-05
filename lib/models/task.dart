@@ -163,13 +163,14 @@ enum TaskStatus {
   Color get colorValue {
     switch (this) {
       case TaskStatus.backlog:
-        return const Color.fromARGB(255, 223, 223, 223); // Красный
+        return const Color.fromARGB(255, 223, 223, 223);
       case TaskStatus.inProgress:
-        return const Color.fromARGB(255, 151, 208, 255); // Оранжевый
+        return const Color.fromARGB(255, 151, 208, 255);
       case TaskStatus.review:
-        return const Color.fromARGB(255, 209, 186, 248); // Синий
+        // Сине-серый фон карточки (раньше был лавандовый «фиолетовый»).
+        return const Color.fromARGB(255, 184, 204, 236);
       case TaskStatus.done:
-        return Color.fromARGB(255, 186, 255, 171); // Зеленый
+        return Color.fromARGB(255, 186, 255, 171);
     }
   }
 }

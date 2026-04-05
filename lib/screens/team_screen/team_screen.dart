@@ -44,6 +44,8 @@ class TeamView extends StatelessWidget {
   // Цвета
   static const Color backgroundColor = Color.fromARGB(255, 255, 255, 255);
   static const Color accentColor = Color(0xFF73A168);
+  /// Тёмно-синий для главного действия (избегает фиолетового оттенка Material 3 у ElevatedButton).
+  static const Color primaryActionBlue = Color(0xFF1E3A5F);
   static const Color textColor = Color(0xFF000000);
   static const Color dividerColor = Color(0xFF636363);
 
@@ -475,6 +477,9 @@ class _InvitesSectionState extends State<_InvitesSection> {
                   const SizedBox(width: 12),
                   IconButton(
                     tooltip: 'Проверить и пригласить',
+                    mouseCursor: state.isInvitesLoading
+                        ? SystemMouseCursors.basic
+                        : SystemMouseCursors.click,
                     onPressed: state.isInvitesLoading
                         ? null
                         : () {
@@ -500,7 +505,11 @@ class _InvitesSectionState extends State<_InvitesSection> {
                 ),
               ],
               const SizedBox(height: 16),
-              if (state.isInvitesLoading) const LinearProgressIndicator(),
+              if (state.isInvitesLoading)
+                LinearProgressIndicator(
+                  color: TeamView.accentColor,
+                  backgroundColor: TeamView.accentColor.withValues(alpha: 0.2),
+                ),
               const SizedBox(height: 8),
               _buildInvitesList(
                 title: 'Входящие (мне)',
@@ -571,12 +580,29 @@ class _InvitesSectionState extends State<_InvitesSection> {
           if (isIncoming) ...[
             TextButton(
               onPressed: () => context.read<TeamCubit>().declineInvite(inv.id),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ).copyWith(
+                mouseCursor: const WidgetStatePropertyAll(
+                  SystemMouseCursors.click,
+                ),
+              ),
               child: const Text('Отклонить'),
             ),
             const SizedBox(width: 8),
             ElevatedButton(
               onPressed: () => context.read<TeamCubit>().acceptInvite(inv.id),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: TeamView.primaryActionBlue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ).copyWith(
+                mouseCursor: const WidgetStatePropertyAll(
+                  SystemMouseCursors.click,
+                ),
+              ),
               child: const Text('Принять'),
             ),
           ],
