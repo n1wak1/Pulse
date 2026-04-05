@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 import 'package:pulse_mobile/models/team_data.dart';
 import '../../core/api_client.dart';
-import '../../models/team_member_api.dart';
 import '../../models/team_response.dart';
+import '../../models/team_invitation.dart';
 import '../../notifiers/current_project_notifier.dart';
 import 'cubit/team_cubit_cubit.dart';
 import '../../services/team_service.dart';
@@ -107,6 +105,8 @@ class TeamView extends StatelessWidget {
             ),
           ),
           _buildTeamMembersSection(state),
+          _buildDivider(),
+          _InvitesSection(),
         ],
       ],
     );
@@ -415,6 +415,173 @@ class TeamView extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       height: 1,
       color: dividerColor,
+    );
+  }
+}
+
+class _InvitesSection extends StatefulWidget {
+  @override
+  State<_InvitesSection> createState() => _InvitesSectionState();
+}
+
+class _InvitesSectionState extends State<_InvitesSection> {
+  final _emailController = TextEditingController();
+  final _roleController = TextEditingController(text: 'DEVELOPER');
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _roleController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<TeamCubit, TeamState>(
+      builder: (context, state) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Приглашения',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        labelText: 'Email пользователя',
+                        hintText: 'user@example.com',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 140,
+                    child: TextField(
+                      controller: _roleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Роль',
+                        hintText: 'DEVELOPER',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  IconButton(
+                    tooltip: 'Проверить и пригласить',
+                    onPressed: state.isInvitesLoading
+                        ? null
+                        : () {
+                            final email = _emailController.text.trim();
+                            final role = _roleController.text.trim();
+                            if (email.isEmpty) {
+                              return;
+                            }
+                            context.read<TeamCubit>().inviteByEmail(
+                                  email: email,
+                                  role: role.isEmpty ? 'DEVELOPER' : role,
+                                );
+                          },
+                    icon: const Icon(Icons.check_circle_outline),
+                  ),
+                ],
+              ),
+              if (state.inviteActionError != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  state.inviteActionError!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ],
+              const SizedBox(height: 16),
+              if (state.isInvitesLoading) const LinearProgressIndicator(),
+              const SizedBox(height: 8),
+              _buildInvitesList(
+                title: 'Входящие (мне)',
+                invites: state.incomingInvites,
+                isIncoming: true,
+              ),
+              const SizedBox(height: 12),
+              _buildInvitesList(
+                title: 'Исходящие (из команды)',
+                invites: state.outgoingInvites,
+                isIncoming: false,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInvitesList({
+    required String title,
+    required List<TeamInvitation> invites,
+    required bool isIncoming,
+  }) {
+    final pending = invites.where((i) => i.status == TeamInvitationStatus.pending).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        if (pending.isEmpty)
+          Text(
+            'Нет активных приглашений',
+            style: TextStyle(color: Colors.black.withValues(alpha: 0.6)),
+          )
+        else
+          ...pending.map((inv) => _buildInviteCard(inv, isIncoming)),
+      ],
+    );
+  }
+
+  Widget _buildInviteCard(TeamInvitation inv, bool isIncoming) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  inv.teamName.isNotEmpty ? inv.teamName : 'Команда #${inv.teamId}',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 4),
+                Text('Кому: ${inv.inviteeEmail} • Роль: ${inv.role}'),
+                if (inv.inviterName.isNotEmpty) Text('От: ${inv.inviterName}'),
+              ],
+            ),
+          ),
+          if (isIncoming) ...[
+            TextButton(
+              onPressed: () => context.read<TeamCubit>().declineInvite(inv.id),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Отклонить'),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: () => context.read<TeamCubit>().acceptInvite(inv.id),
+              child: const Text('Принять'),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

@@ -9,7 +9,9 @@ plugins {
 android {
     namespace = "com.example.pulse_mobile"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // Flutter по умолчанию тянет NDK 28.x; локальная папка без source.properties даёт CXX1101.
+    // Используем установленный полный NDK (см. %ANDROID_SDK%\ndk\<версия>\source.properties).
+    ndkVersion = "30.0.14904198"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

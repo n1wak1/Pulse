@@ -4,6 +4,7 @@ import 'package:pulse_mobile/notifiers/current_project_notifier.dart';
 import '../models/task.dart';
 import '../services/api_service.dart';
 import '../core/api_exception.dart';
+import '../utils/date_formatting.dart';
 import 'login_screen.dart';
 
 class TaskDetailScreen extends StatefulWidget {
@@ -272,7 +273,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   ),
                   child: Text(
                     _selectedDeadline != null
-                        ? '${_selectedDeadline!.day}.${_selectedDeadline!.month}.${_selectedDeadline!.year}'
+                        ? formatDateDdMmYyyy(_selectedDeadline!)
                         : 'Не установлен',
                     style: TextStyle(
                       color: _selectedDeadline != null

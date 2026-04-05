@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Конфигурация API
@@ -52,16 +53,39 @@ class ApiConfig {
   /// Получить токен авторизации
   static Future<String?> getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(_tokenKey);
+    var token = prefs.getString(_tokenKey);
     if (token != null) {
       debugPrint('ApiConfig: Token retrieved');
       debugPrint('ApiConfig: Token length: ${token.length}');
       debugPrint('ApiConfig: Token preview: ${token.substring(0, token.length > 50 ? 50 : token.length)}...');
       debugPrint('ApiConfig: Token starts with eyJ: ${token.startsWith('eyJ')}');
-    } else {
-      debugPrint('ApiConfig: No token found in storage');
+      return token;
     }
-    return token;
+
+    debugPrint('ApiConfig: No token found in storage');
+
+    // Fallback: если токен в локальном хранилище потерялся,
+    // пытаемся восстановить его из текущей Firebase-сессии.
+    try {
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser == null) {
+        debugPrint('ApiConfig: Firebase user is null, token cannot be restored');
+        return null;
+      }
+
+      token = await firebaseUser.getIdToken(true);
+      if (token == null || token.isEmpty) {
+        debugPrint('ApiConfig: Failed to restore token from Firebase');
+        return null;
+      }
+
+      await prefs.setString(_tokenKey, token);
+      debugPrint('ApiConfig: Token restored from Firebase and saved');
+      return token;
+    } catch (e) {
+      debugPrint('ApiConfig: Token restore from Firebase failed: $e');
+      return null;
+    }
   }
   
   /// Очистить токен авторизации

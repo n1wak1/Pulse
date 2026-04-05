@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../core/api_client.dart';
+import '../models/public_user.dart';
+import '../models/team_invitation.dart';
 import '../models/team_response.dart';
 
 /// Сервис для работы с API команд
@@ -84,6 +86,99 @@ class TeamService {
       debugPrint('TeamService: Error creating team: $e');
       throw Exception('Ошибка при создании команды: $e');
     }
+  }
+
+  /// Проверка существования пользователя по email.
+  ///
+  /// Ожидаемая ручка бэкенда:
+  /// GET /api/users/lookup?email={email}
+  /// - 200: { id, email, name? }
+  /// - 404: пользователь не найден
+  Future<PublicUser?> lookupUserByEmail(String email) async {
+    try {
+      final response = await _apiClient.get(
+        '/api/users/lookup',
+        queryParameters: {'email': email},
+      );
+      return PublicUser.fromJson(response as Map<String, dynamic>);
+    } catch (e) {
+      // ApiClient выбросит ApiException('Ресурс не найден.') при 404,
+      // в UI это будет показано как "Пользователь не найден".
+      debugPrint('TeamService: lookupUserByEmail error: $e');
+      rethrow;
+    }
+  }
+
+  /// Отправить приглашение пользователю вступить в команду.
+  ///
+  /// Ожидаемая ручка бэкенда:
+  /// POST /api/teams/{teamId}/invitations  body: { email, role }
+  /// - 200/201: TeamInvitation JSON
+  Future<TeamInvitation> inviteUserToTeam({
+    required int teamId,
+    required String email,
+    required String role,
+  }) async {
+    final response = await _apiClient.post(
+      '/api/teams/$teamId/invitations',
+      body: {'email': email, 'role': role},
+    );
+    return TeamInvitation.fromJson(response as Map<String, dynamic>);
+  }
+
+  /// Получить входящие приглашения (для текущего пользователя).
+  ///
+  /// Ожидаемая ручка бэкенда:
+  /// GET /api/invitations/incoming?status=PENDING
+  Future<List<TeamInvitation>> getIncomingInvitations({
+    TeamInvitationStatus status = TeamInvitationStatus.pending,
+  }) async {
+    final response = await _apiClient.get(
+      '/api/invitations/incoming',
+      queryParameters: {'status': teamInvitationStatusToJson(status)},
+    );
+    if (response is List) {
+      return response
+          .map((e) => TeamInvitation.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    return [];
+  }
+
+  /// Получить исходящие приглашения по команде (для тимлида/админа).
+  ///
+  /// Ожидаемая ручка бэкенда:
+  /// GET /api/teams/{teamId}/invitations?status=PENDING
+  Future<List<TeamInvitation>> getTeamOutgoingInvitations({
+    required int teamId,
+    TeamInvitationStatus status = TeamInvitationStatus.pending,
+  }) async {
+    final response = await _apiClient.get(
+      '/api/teams/$teamId/invitations',
+      queryParameters: {'status': teamInvitationStatusToJson(status)},
+    );
+    if (response is List) {
+      return response
+          .map((e) => TeamInvitation.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    return [];
+  }
+
+  /// Принять приглашение.
+  ///
+  /// Ожидаемая ручка бэкенда:
+  /// POST /api/invitations/{invitationId}/accept
+  Future<void> acceptInvitation(int invitationId) async {
+    await _apiClient.post('/api/invitations/$invitationId/accept');
+  }
+
+  /// Отклонить приглашение.
+  ///
+  /// Ожидаемая ручка бэкенда:
+  /// POST /api/invitations/{invitationId}/decline
+  Future<void> declineInvitation(int invitationId) async {
+    await _apiClient.post('/api/invitations/$invitationId/decline');
   }
 }
 
