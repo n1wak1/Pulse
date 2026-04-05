@@ -39,7 +39,16 @@ class TeamCubit extends Cubit<TeamState> {
         emit(state.copyWith(isLoading: false, teams: teams, error: null));
         await loadInvitations();
       } else {
-        emit(state.copyWith(isLoading: false, teams: [], error: null));
+        _currentProjectNotifier.clearProject();
+        emit(state.copyWith(
+          isLoading: false,
+          teams: [],
+          currentTeam: null,
+          error: null,
+        ));
+        // Входящие приглашения привязаны к пользователю, а не к команде —
+        // загружаем даже при нуле команд.
+        await loadInvitations();
       }
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
@@ -52,13 +61,13 @@ class TeamCubit extends Cubit<TeamState> {
   }
 
   Future<void> loadInvitations() async {
-    final teamId = state.currentTeam?.id;
-    if (teamId == null || teamId == 0) return;
-
     emit(state.copyWith(isInvitesLoading: true, inviteActionError: null));
     try {
       final incoming = await _teamService.getIncomingInvitations();
-      final outgoing = await _teamService.getTeamOutgoingInvitations(teamId: teamId);
+      final teamId = state.currentTeam?.id;
+      final outgoing = (teamId != null && teamId != 0)
+          ? await _teamService.getTeamOutgoingInvitations(teamId: teamId)
+          : <TeamInvitation>[];
       emit(state.copyWith(
         isInvitesLoading: false,
         incomingInvites: incoming,

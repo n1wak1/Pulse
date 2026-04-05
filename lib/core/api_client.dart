@@ -165,8 +165,10 @@ class ApiClient {
       ApiConfig.clearAuthToken().catchError((_) {});
       throw ApiException('Не авторизован. Войдите снова.');
     } else if (response.statusCode == 403) {
-      // Ошибка доступа - возможно токен неверный или истек
-      debugPrint('ApiClient: 403 Forbidden - возможно проблема с токеном');
+      // 403 — чаще «нет прав на ресурс» (чужая команда и т.п.), а не битый токен.
+      // Не очищаем сохранённый токен: иначе после смены аккаунта остаётся старый
+      // teamId в UI → 403 → пользователь «вылетает» из сессии без причины.
+      debugPrint('ApiClient: 403 Forbidden');
       debugPrint('ApiClient: Response body: ${response.body}');
       try {
         final errorBody = jsonDecode(response.body) as Map<String, dynamic>;
@@ -174,13 +176,10 @@ class ApiClient {
             errorBody['message'] as String? ??
             errorBody['error'] as String? ??
             'Доступ запрещен';
-        ApiConfig.clearAuthToken().catchError((_) {});
         throw ApiException(errorMessage);
       } catch (e) {
-        ApiConfig.clearAuthToken().catchError((_) {});
-        throw ApiException(
-          'Доступ запрещен. Возможно, токен неверный или истек. Войдите снова.',
-        );
+        if (e is ApiException) rethrow;
+        throw ApiException('Доступ запрещен.');
       }
     } else if (response.statusCode == 404) {
       throw ApiException('Ресурс не найден.');

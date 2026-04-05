@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'backlog_screen/backlog_screen.dart';
 import 'team_screen/team_screen.dart';
 import 'login_screen.dart';
+import '../notifiers/current_project_notifier.dart';
 import '../services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -35,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (confirmed == true && mounted) {
+      context.read<CurrentProjectNotifier>().clearProject();
       final authService = AuthService();
       await authService.logout();
 

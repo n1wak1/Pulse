@@ -1,5 +1,12 @@
 part of 'team_cubit_cubit.dart';
 
+/// Маркер для [TeamState.copyWith]: «поле currentTeam не передавали» (в отличие от явного null).
+class _KeepCurrentTeamMarker {
+  const _KeepCurrentTeamMarker();
+}
+
+const _keepCurrentTeamMarker = _KeepCurrentTeamMarker();
+
 @immutable
 class TeamState {
   final bool isLoading;
@@ -25,7 +32,7 @@ class TeamState {
   TeamState copyWith({
     bool? isLoading,
     List<TeamResponse>? teams,
-    TeamResponse? currentTeam,
+    Object? currentTeam = _keepCurrentTeamMarker,
     String? error,
     bool? isInvitesLoading,
     List<TeamInvitation>? incomingInvites,
@@ -35,7 +42,9 @@ class TeamState {
     return TeamState(
       isLoading: isLoading ?? this.isLoading,
       teams: teams ?? this.teams,
-      currentTeam: currentTeam ?? this.currentTeam,
+      currentTeam: identical(currentTeam, _keepCurrentTeamMarker)
+          ? this.currentTeam
+          : currentTeam as TeamResponse?,
       error: error ?? this.error,
       isInvitesLoading: isInvitesLoading ?? this.isInvitesLoading,
       incomingInvites: incomingInvites ?? this.incomingInvites,

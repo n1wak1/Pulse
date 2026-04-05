@@ -1,6 +1,7 @@
-/// Дата в виде `dd.MM.yyyy` (день и месяц с ведущими нулями).
-String formatDateDdMmYyyy(DateTime date) {
-  final d = date.day.toString().padLeft(2, '0');
-  final m = date.month.toString().padLeft(2, '0');
-  return '$d.$m.${date.year}';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+/// Краткая дата по локали (например, ru: 02.04.2026).
+String formatShortDate(DateTime date, Locale locale) {
+  return DateFormat.yMd(locale.toString()).format(date);
 }

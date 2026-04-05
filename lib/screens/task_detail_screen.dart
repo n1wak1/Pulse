@@ -116,8 +116,10 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   Future<void> _selectDeadline() async {
     final now = DateTime.now();
     final firstDate = widget.task?.createdAt ?? now;
+    final locale = Localizations.localeOf(context);
     final picked = await showDatePicker(
       context: context,
+      locale: locale,
       initialDate: _selectedDeadline ?? now,
       firstDate: firstDate,
       lastDate: DateTime(now.year + 1),
@@ -273,7 +275,10 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   ),
                   child: Text(
                     _selectedDeadline != null
-                        ? formatDateDdMmYyyy(_selectedDeadline!)
+                        ? formatShortDate(
+                            _selectedDeadline!,
+                            Localizations.localeOf(context),
+                          )
                         : 'Не установлен',
                     style: TextStyle(
                       color: _selectedDeadline != null

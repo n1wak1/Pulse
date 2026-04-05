@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
@@ -89,6 +90,24 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Pulse',
       debugShowCheckedModeBanner: false,
+      localeResolutionCallback: (locale, supportedLocales) {
+        if (locale == null) return supportedLocales.first;
+        for (final supported in supportedLocales) {
+          if (supported.languageCode == locale.languageCode) {
+            return supported;
+          }
+        }
+        return supportedLocales.first;
+      },
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ru'),
+      ],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: kPrimaryColor,

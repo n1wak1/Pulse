@@ -92,6 +92,8 @@ class TeamView extends StatelessWidget {
     return ListView(
       children: [
         _buildHeader(context, state),
+        if (state.teams.isEmpty)
+          _buildIncomingInvitesWhenNoTeams(context, state),
         _buildTeamsList(context, state),
         if (state.currentTeam != null) ...[
           _buildDivider(),
@@ -419,6 +421,124 @@ class TeamView extends StatelessWidget {
       color: dividerColor,
     );
   }
+
+  /// Входящие приглашения, когда своих команд ещё нет (см. TeamCubit.loadInvitations).
+  Widget _buildIncomingInvitesWhenNoTeams(BuildContext context, TeamState state) {
+    final pending = state.incomingInvites
+        .where((i) => i.status == TeamInvitationStatus.pending)
+        .toList();
+    if (pending.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Приглашения в команду',
+            style: TextStyle(
+              color: textColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'У вас пока нет команды, но вас пригласили присоединиться:',
+            style: TextStyle(
+              color: textColor.withValues(alpha: 0.65),
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (state.isInvitesLoading)
+            LinearProgressIndicator(
+              color: accentColor,
+              backgroundColor: accentColor.withValues(alpha: 0.2),
+            ),
+          ...pending.map(
+            (inv) => _TeamInviteCard(
+              invite: inv,
+              showIncomingActions: true,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TeamInviteCard extends StatelessWidget {
+  final TeamInvitation invite;
+  final bool showIncomingActions;
+
+  const _TeamInviteCard({
+    required this.invite,
+    required this.showIncomingActions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final inv = invite;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  inv.teamName.isNotEmpty ? inv.teamName : 'Команда #${inv.teamId}',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 4),
+                Text('Кому: ${inv.inviteeEmail} • Роль: ${inv.role}'),
+                if (inv.inviterName.isNotEmpty) Text('От: ${inv.inviterName}'),
+              ],
+            ),
+          ),
+          if (showIncomingActions) ...[
+            TextButton(
+              onPressed: () => context.read<TeamCubit>().declineInvite(inv.id),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ).copyWith(
+                mouseCursor: const WidgetStatePropertyAll(
+                  SystemMouseCursors.click,
+                ),
+              ),
+              child: const Text('Отклонить'),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: () => context.read<TeamCubit>().acceptInvite(inv.id),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: TeamView.primaryActionBlue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ).copyWith(
+                mouseCursor: const WidgetStatePropertyAll(
+                  SystemMouseCursors.click,
+                ),
+              ),
+              child: const Text('Принять'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 class _InvitesSection extends StatefulWidget {
@@ -547,67 +667,13 @@ class _InvitesSectionState extends State<_InvitesSection> {
             style: TextStyle(color: Colors.black.withValues(alpha: 0.6)),
           )
         else
-          ...pending.map((inv) => _buildInviteCard(inv, isIncoming)),
-      ],
-    );
-  }
-
-  Widget _buildInviteCard(TeamInvitation inv, bool isIncoming) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  inv.teamName.isNotEmpty ? inv.teamName : 'Команда #${inv.teamId}',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 4),
-                Text('Кому: ${inv.inviteeEmail} • Роль: ${inv.role}'),
-                if (inv.inviterName.isNotEmpty) Text('От: ${inv.inviterName}'),
-              ],
+          ...pending.map(
+            (inv) => _TeamInviteCard(
+              invite: inv,
+              showIncomingActions: isIncoming,
             ),
           ),
-          if (isIncoming) ...[
-            TextButton(
-              onPressed: () => context.read<TeamCubit>().declineInvite(inv.id),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ).copyWith(
-                mouseCursor: const WidgetStatePropertyAll(
-                  SystemMouseCursors.click,
-                ),
-              ),
-              child: const Text('Отклонить'),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: () => context.read<TeamCubit>().acceptInvite(inv.id),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: TeamView.primaryActionBlue,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ).copyWith(
-                mouseCursor: const WidgetStatePropertyAll(
-                  SystemMouseCursors.click,
-                ),
-              ),
-              child: const Text('Принять'),
-            ),
-          ],
-        ],
-      ),
+      ],
     );
   }
 }

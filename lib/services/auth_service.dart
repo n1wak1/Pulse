@@ -17,7 +17,12 @@ class AuthService {
     try {
       debugPrint('Login: Attempting to sign in with Firebase');
       debugPrint('Login: Email: $email');
-      
+
+      // Сбрасываем локальную сессию и кеш токена, чтобы не смешивать аккаунты
+      // (Firebase + SharedPreferences после другого пользователя).
+      await _firebaseAuth.signOut();
+      await ApiConfig.clearAuthToken();
+
       // Входим через Firebase SDK - пароль проверяется автоматически
       final credential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
@@ -95,7 +100,10 @@ class AuthService {
     try {
       debugPrint('Register: Attempting to create user in Firebase');
       debugPrint('Register: Email: $email');
-      
+
+      await _firebaseAuth.signOut();
+      await ApiConfig.clearAuthToken();
+
       // Создаем пользователя в Firebase через SDK
       final credential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
@@ -209,8 +217,6 @@ class AuthService {
     await ApiConfig.clearAuthToken();
     await FirebaseAuth.instance.signOut();
   }
-
-
 }
 
 /// Ответ авторизации
