@@ -1,68 +1,44 @@
 package com.pulse.controller;
 
+import com.pulse.dto.AuthResponse;
 import com.pulse.dto.ErrorResponse;
 import com.pulse.dto.LoginRequest;
 import com.pulse.dto.RegisterRequest;
 import com.pulse.dto.ResetPasswordRequest;
+import com.pulse.service.FirebaseAuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Контроллер для авторизации
- * 
- * ВАЖНО: Все эндпоинты помечены как @Deprecated.
- * Регистрация, логин и восстановление пароля теперь происходят напрямую через Firebase SDK на клиенте.
- * Бэкенд только валидирует токены через FirebaseTokenFilter.
- */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    /**
-     * @deprecated Логин теперь происходит напрямую через Firebase SDK на клиенте.
-     * Этот эндпоинт оставлен для обратной совместимости, но не должен использоваться.
-     */
-    @Deprecated
+    private final FirebaseAuthService firebaseAuthService;
+
+    public AuthController(FirebaseAuthService firebaseAuthService) {
+        this.firebaseAuthService = firebaseAuthService;
+    }
+
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.status(HttpStatus.GONE)
-                .body(new ErrorResponse(
-                    "Login is now handled by Firebase SDK on the client side. Please use Firebase Auth directly.",
-                    "DEPRECATED_ENDPOINT",
-                    null
-                ));
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(firebaseAuthService.login(request));
     }
 
-    /**
-     * @deprecated Регистрация теперь происходит напрямую через Firebase SDK на клиенте.
-     * Этот эндпоинт оставлен для обратной совместимости, но не должен использоваться.
-     */
-    @Deprecated
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.status(HttpStatus.GONE)
-                .body(new ErrorResponse(
-                    "Registration is now handled by Firebase SDK on the client side. Please use Firebase Auth directly.",
-                    "DEPRECATED_ENDPOINT",
-                    null
-                ));
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(firebaseAuthService.register(request));
     }
 
-    /**
-     * @deprecated Восстановление пароля теперь происходит напрямую через Firebase SDK на клиенте.
-     * Этот эндпоинт оставлен для обратной совместимости, но не должен использоваться.
-     */
-    @Deprecated
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-        return ResponseEntity.status(HttpStatus.GONE)
-                .body(new ErrorResponse(
-                    "Password reset is now handled by Firebase SDK on the client side. Please use Firebase Auth directly.",
-                    "DEPRECATED_ENDPOINT",
-                    null
-                ));
+        firebaseAuthService.resetPassword(request);
+        return ResponseEntity.ok(new ErrorResponse(
+                "Password reset link generated successfully",
+                "RESET_PASSWORD_REQUESTED",
+                null
+        ));
     }
 }
 

@@ -1,20 +1,17 @@
 package com.pulse.dto;
 
-import lombok.Data;
-
-@Data
-public class UserDto {
+public class PublicUserDto {
     private Long id;
     private String email;
-    private String displayName;
+    private String name;
 
-    public UserDto() {
+    public PublicUserDto() {
     }
 
-    public UserDto(Long id, String email, String displayName) {
+    public PublicUserDto(Long id, String email, String name) {
         this.id = id;
         this.email = email;
-        this.displayName = displayName;
+        this.name = name;
     }
 
     public Long getId() {
@@ -33,14 +30,12 @@ public class UserDto {
         this.email = email;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public String getName() {
+        return name;
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+    public void setName(String name) {
+        this.name = name;
     }
 }
-
-
 

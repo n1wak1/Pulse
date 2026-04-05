@@ -1,13 +1,13 @@
 package com.pulse.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import com.pulse.validation.RussianEmail;
 
 @Data
 public class ResetPasswordRequest {
     @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @RussianEmail(message = "Email must use allowed symbols and Russian mail domain")
     private String email;
 }
 

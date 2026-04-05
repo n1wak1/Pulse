@@ -5,6 +5,19 @@ target/
 .DS_Store
 *.class
 .env
+.env.*
+!.env.example
 firebase-credentials.json
+*credentials*.json
+*secret*.json
+*service-account*.json
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+
+# local tooling
+.vscode/*.log
 
 
