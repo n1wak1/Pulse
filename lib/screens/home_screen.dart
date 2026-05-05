@@ -39,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (confirmed == true && mounted) {
       context.read<CurrentProjectNotifier>().clearProject();
       final authService = AuthService();
+      context.read<CurrentProjectNotifier>().clearProject();
       await authService.logout();
 
       if (mounted) {

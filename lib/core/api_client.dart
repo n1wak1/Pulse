@@ -75,6 +75,8 @@ class ApiClient {
 
       debugPrint('ApiClient: Response status: ${response.statusCode}');
       return _handleResponse(response);
+    } on ApiException {
+      rethrow;
     } catch (e) {
       throw ApiException('Ошибка при выполнении GET запроса: $e');
     }
@@ -108,6 +110,8 @@ class ApiClient {
       debugPrint('ApiClient: Response body: ${response.body}');
       
       return _handleResponse(response);
+    } on ApiException {
+      rethrow;
     } catch (e) {
       debugPrint('ApiClient: POST error: $e');
       throw ApiException('Ошибка при выполнении POST запроса: $e');
@@ -127,6 +131,8 @@ class ApiClient {
       );
 
       return _handleResponse(response);
+    } on ApiException {
+      rethrow;
     } catch (e) {
       throw ApiException('Ошибка при выполнении PUT запроса: $e');
     }
@@ -141,6 +147,8 @@ class ApiClient {
       );
 
       return _handleResponse(response);
+    } on ApiException {
+      rethrow;
     } catch (e) {
       throw ApiException('Ошибка при выполнении DELETE запроса: $e');
     }

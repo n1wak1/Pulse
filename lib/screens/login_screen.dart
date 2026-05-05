@@ -73,6 +73,10 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
+      // Сбрасываем выбранную команду предыдущей сессии (иначе POST /tasks/by-team
+      // уйдёт с чужим teamId после смены аккаунта без перезапуска приложения).
+      context.read<CurrentProjectNotifier>().clearProject();
+
       // Переход на главный экран после успешной авторизации
       Navigator.pushReplacement(
         context,
