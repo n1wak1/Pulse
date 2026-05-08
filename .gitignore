@@ -46,3 +46,10 @@ app.*.map.json
 
 
 /android/app/google-services.json
+
+# Local copies / backend (keep out of this repo)
+/Pulse/
+/Pulse_backend/
+
+# Backend secrets (never commit)
+**/firebase-credentials.json

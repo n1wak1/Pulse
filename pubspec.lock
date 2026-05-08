@@ -252,8 +252,7 @@ packages:
       sha256: f9881ff4998044947ec38d098bc7c8316ae1186fa786eddffdb867b9bc94dfce
       url: "https://pub.dev"
     source: hosted
-<<<<<<< HEAD
-    version: "4.5.4"
+    version: "4.8.0"
   intl:
     dependency: "direct main"
     description:
@@ -262,9 +261,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.20.2"
-=======
-    version: "4.8.0"
->>>>>>> f651100 (Фикс багов в Токеном)
   json_annotation:
     dependency: transitive
     description:

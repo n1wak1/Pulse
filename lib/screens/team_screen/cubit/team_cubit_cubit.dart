@@ -40,7 +40,6 @@ class TeamCubit extends Cubit<TeamState> {
         await loadInvitations();
       } else {
         _currentProjectNotifier.clearProject();
-<<<<<<< HEAD
         emit(state.copyWith(
           isLoading: false,
           teams: [],
@@ -50,9 +49,6 @@ class TeamCubit extends Cubit<TeamState> {
         // Входящие приглашения привязаны к пользователю, а не к команде —
         // загружаем даже при нуле команд.
         await loadInvitations();
-=======
-        emit(state.copyWith(isLoading: false, teams: [], error: null));
->>>>>>> f651100 (Фикс багов в Токеном)
       }
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
